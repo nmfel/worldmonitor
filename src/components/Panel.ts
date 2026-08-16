@@ -57,17 +57,19 @@ function getColSpan(element: HTMLElement): number {
   return getExplicitColSpanClass(element) ?? getDefaultColSpan(element);
 }
 
-function persistPanelColSpan(panelId: string, element: HTMLElement): void {
+function persistPanelColSpan(panelId: string, element: HTMLElement, cb?: (colSpan?: number) => void): void {
   const maxSpan = getMaxColSpan(element);
   const naturalSpan = clampColSpan(getDefaultColSpan(element), maxSpan);
   const currentSpan = clampColSpan(getColSpan(element), maxSpan);
   if (currentSpan === naturalSpan) {
     element.classList.remove('col-span-1', 'col-span-2', 'col-span-3');
     clearPanelColSpan(panelId);
+    cb?.(undefined);
     return;
   }
   setColSpanClass(element, currentSpan);
   savePanelColSpan(panelId, currentSpan);
+  cb?.(currentSpan);
 }
 
 function deltaToColSpan(startSpan: number, deltaX: number, maxSpan = 3): number {
@@ -100,6 +102,12 @@ function setSpanClass(element: HTMLElement, span: number): void {
   element.classList.remove('span-1', 'span-2', 'span-3', 'span-4');
   element.classList.add(`span-${span}`);
   element.classList.add('resized');
+}
+
+export interface PanelLayoutMutationCallbacks {
+  onRowSpanChanged?(panelId: string, rowSpan?: number): void;
+  onColSpanChanged?(panelId: string, colSpan?: number): void;
+  onCollapsedChanged?(panelId: string, collapsed: boolean): void;
 }
 
 export class Panel {
@@ -181,6 +189,11 @@ export class Panel {
   private connectedCallbacks: Array<() => void> = [];
   private connectedFallbackTimer: ReturnType<typeof setTimeout> | null = null;
   private destroyed = false;
+  private layoutMutationCallbacks: PanelLayoutMutationCallbacks | null = null;
+
+  public setLayoutMutationCallbacks(cb: PanelLayoutMutationCallbacks | null): void {
+    this.layoutMutationCallbacks = cb;
+  }
 
   constructor(options: PanelOptions) {
     this.panelId = options.id;
@@ -416,6 +429,7 @@ export class Panel {
 
       const currentSpan = getRowSpan(this.element);
       savePanelSpan(this.panelId, currentSpan);
+      this.layoutMutationCallbacks?.onRowSpanChanged?.(this.panelId, currentSpan);
       trackPanelResized(this.panelId, currentSpan);
     };
 
@@ -488,6 +502,7 @@ export class Panel {
       this.removeRowTouchDocumentListeners();
       const currentSpan = getRowSpan(this.element);
       savePanelSpan(this.panelId, currentSpan);
+      this.layoutMutationCallbacks?.onRowSpanChanged?.(this.panelId, currentSpan);
       trackPanelResized(this.panelId, currentSpan);
     };
     this.onTouchCancel = this.onTouchEnd;
@@ -556,7 +571,9 @@ export class Panel {
       }
       const finalSpan = clampColSpan(getColSpan(this.element), getMaxColSpan(this.element));
       if (finalSpan !== this.startColSpan) {
-        persistPanelColSpan(this.panelId, this.element);
+        persistPanelColSpan(this.panelId, this.element, (colSpan) => {
+          this.layoutMutationCallbacks?.onColSpanChanged?.(this.panelId, colSpan);
+        });
       }
     };
 
@@ -627,7 +644,9 @@ export class Panel {
       this.removeColTouchDocumentListeners();
       const finalSpan = clampColSpan(getColSpan(this.element), getMaxColSpan(this.element));
       if (finalSpan !== this.startColSpan) {
-        persistPanelColSpan(this.panelId, this.element);
+        persistPanelColSpan(this.panelId, this.element, (colSpan) => {
+          this.layoutMutationCallbacks?.onColSpanChanged?.(this.panelId, colSpan);
+        });
       }
     };
     this.onColTouchCancel = this.onColTouchEnd;
@@ -714,6 +733,7 @@ export class Panel {
       e.stopPropagation();
       this._applyCollapsed(btn, !this._collapsed);
       savePanelCollapsed(this.panelId, this._collapsed);
+      this.layoutMutationCallbacks?.onCollapsedChanged?.(this.panelId, this._collapsed);
     });
     this._collapseBtn = btn;
     this.header.appendChild(btn);
@@ -1437,11 +1457,13 @@ export class Panel {
   public resetHeight(): void {
     this.element.classList.remove('resized', 'span-1', 'span-2', 'span-3', 'span-4');
     clearPanelSpan(this.panelId);
+    this.layoutMutationCallbacks?.onRowSpanChanged?.(this.panelId, undefined);
   }
 
   public resetWidth(): void {
     clearColSpanClass(this.element);
     clearPanelColSpan(this.panelId);
+    this.layoutMutationCallbacks?.onColSpanChanged?.(this.panelId, undefined);
   }
 
   protected get signal(): AbortSignal {

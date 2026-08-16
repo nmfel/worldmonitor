@@ -9,7 +9,6 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { runInNewContext } from 'node:vm';
 
 import {
   applyProBannerEntitlementHint,
@@ -428,61 +427,6 @@ describe('entitlement hint helpers', () => {
   });
 });
 
-describe('pre-paint reservation honors entitlement hint', () => {
-  function runPrepaint(storageSeed: Record<string, string>): Set<string> {
-    const html = readFileSync(resolve(root, 'index.html'), 'utf-8');
-    const script = html.match(/<script data-wm-prepaint>([\s\S]*?)<\/script>/);
-    assert.ok(script, 'Expected data-wm-prepaint script');
-
-    const classes = new Set<string>();
-    const storage = new Map(Object.entries(storageSeed));
-    const windowObj: { self?: unknown; top?: unknown } = {};
-    windowObj.self = windowObj;
-    windowObj.top = windowObj;
-
-    runInNewContext(script[1], {
-      document: {
-        documentElement: {
-          dataset: {},
-          classList: {
-            add: (name: string) => classes.add(name),
-            remove: (name: string) => classes.delete(name),
-          },
-          removeAttribute: () => {},
-        },
-      },
-      localStorage: {
-        getItem: (key: string) => storage.get(key) ?? null,
-        setItem: (key: string, value: string) => { storage.set(key, value); },
-        removeItem: (key: string) => { storage.delete(key); },
-      },
-      location: { hostname: 'www.worldmonitor.app' },
-      window: windowObj,
-      Date,
-    });
-    return classes;
-  }
-
-  it('reserves the banner strip for free visitors without a dismiss or hint', () => {
-    const classes = runPrepaint({});
-    assert.ok(classes.has('wm-pro-banner-reserved'));
-  });
-
-  it('does not reserve when the entitlement hint says pro', () => {
-    const classes = runPrepaint({
-      [PRO_BANNER_ENTITLEMENT_HINT_KEY]: PRO_BANNER_ENTITLEMENT_HINT_VALUE,
-    });
-    assert.equal(classes.has('wm-pro-banner-reserved'), false);
-  });
-
-  it('still skips reservation when dismissed (even without a pro hint)', () => {
-    const classes = runPrepaint({
-      'wm-pro-banner-launched-dismissed': String(Date.now()),
-    });
-    assert.equal(classes.has('wm-pro-banner-reserved'), false);
-  });
-});
-
 describe('wiring contracts (#5728)', () => {
   it('ProBanner uses account-backed resolution and auth/entitlement retries', () => {
     const src = readFileSync(resolve(root, 'src/components/ProBanner.ts'), 'utf-8');
@@ -542,16 +486,6 @@ describe('wiring contracts (#5728)', () => {
     const ret = readFileSync(resolve(root, 'src/services/checkout-return.ts'), 'utf-8');
     assert.match(ret, /markJustPaidProBannerHint/);
     assert.match(ret, /applyProBannerEntitlementHint\(localStorage, true\)/);
-  });
-
-  it('pre-paint script and policy share the same hint key/value', () => {
-    const html = readFileSync(resolve(root, 'index.html'), 'utf-8');
-    const script = html.match(/<script data-wm-prepaint>([\s\S]*?)<\/script>/)?.[1] ?? '';
-    assert.match(
-      script,
-      new RegExp(`localStorage\\.getItem\\('${PRO_BANNER_ENTITLEMENT_HINT_KEY}'\\)==='${PRO_BANNER_ENTITLEMENT_HINT_VALUE}'`),
-    );
-    assert.match(script, /!entitledHint\)document\.documentElement\.classList\.add\('wm-pro-banner-reserved'\)/);
   });
 
   it('CSP script-src still pins the updated pre-paint script hash', () => {

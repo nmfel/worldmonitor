@@ -8,6 +8,23 @@
 /* ---------- Happy Light Mode (default + explicit light) ---------- */
 :root[data-variant="happy"],
 :root[data-variant="happy"][data-theme="light"] {
+  --wm-background: #FAFAF5;
+  --wm-shell: #F5F3EE;
+  --wm-card: #FFFFFF;
+  --wm-card-foreground: #2D3A2E;
+  --wm-popover: #FFFFFF;
+  --wm-popover-foreground: #2D3A2E;
+  --wm-muted: #F5F2EC;
+  --wm-muted-foreground: #6B7A6D;
+  --wm-subtle-foreground: #8A9A8C;
+  --wm-accent: #EDE9E0;
+  --wm-accent-foreground: #2D3A2E;
+  --wm-border: #DDD9CF;
+  --wm-border-subtle: #EBE8E0;
+  --wm-border-strong: #C8C2B5;
+  --wm-input: #F2EFE8;
+  --wm-ring: #6B8F5E;
+
   /* Backgrounds */
   --bg: #FAFAF5;
   --bg-secondary: #F5F3EE;
@@ -98,6 +115,23 @@
 
 /* ---------- Happy Dark Mode ---------- */
 :root[data-variant="happy"][data-theme="dark"] {
+  --wm-background: #1A2332;
+  --wm-shell: #1E2838;
+  --wm-card: #222E3E;
+  --wm-card-foreground: #E8E4DC;
+  --wm-popover: #2A3848;
+  --wm-popover-foreground: #E8E4DC;
+  --wm-muted: #2A3848;
+  --wm-muted-foreground: #A0A098;
+  --wm-subtle-foreground: #808880;
+  --wm-accent: #2E3E50;
+  --wm-accent-foreground: #E8E4DC;
+  --wm-border: #344050;
+  --wm-border-subtle: #283545;
+  --wm-border-strong: #445868;
+  --wm-input: #283545;
+  --wm-ring: #8BAF7A;
+
   /* Backgrounds — deep navy, warm darks */
   --bg: #1A2332;
   --bg-secondary: #1E2838;

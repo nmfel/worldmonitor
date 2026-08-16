@@ -1,0 +1,183 @@
+html.wm-terminal-header .terminal-header {
+  position: relative;
+  z-index: 640;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(240px, 420px) minmax(240px, 1fr);
+  align-items: center;
+  min-height: 46px;
+  padding: 0 10px;
+  background: var(--wm-shell, #111113);
+  border-bottom: 1px solid var(--wm-border, #27272a);
+  color: var(--text-secondary);
+}
+
+html.wm-terminal-header .terminal-header-context,
+html.wm-terminal-header .terminal-header-command,
+html.wm-terminal-header .terminal-header-utilities {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+html.wm-terminal-header .terminal-header-context {
+  gap: 8px;
+}
+
+html.wm-terminal-header .terminal-header-command {
+  justify-content: center;
+}
+
+html.wm-terminal-header .terminal-header-utilities {
+  justify-content: flex-end;
+  gap: 4px;
+  padding-left: 0;
+}
+
+.terminal-header-context-copy {
+  display: grid;
+  min-width: 96px;
+  max-width: 180px;
+  line-height: 1.15;
+}
+
+.terminal-header-eyebrow {
+  color: var(--text-muted);
+  font-size: 8px;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.terminal-header-title {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.terminal-region-select {
+  width: auto;
+  max-width: 116px;
+  height: 28px;
+  padding: 0 24px 0 8px;
+  background-color: var(--wm-input, #18181b);
+  border-color: var(--wm-border, #27272a);
+  border-radius: var(--wm-radius-sm, 4px);
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.terminal-mission-mount {
+  min-width: 0;
+}
+
+.terminal-search-btn {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  width: min(100%, 360px);
+  height: 30px;
+  padding: 0 8px;
+  background: var(--wm-input, #18181b);
+  border: 1px solid var(--wm-border, #27272a);
+  border-radius: var(--wm-radius-sm, 4px);
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 140ms ease, color 140ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.terminal-search-btn:active,
+.terminal-icon-btn:active {
+  transform: scale(0.97);
+}
+
+.terminal-search-icon {
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.terminal-search-label {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.terminal-search-shortcut {
+  padding: 2px 5px;
+  background: var(--wm-muted, #202024);
+  border: 1px solid var(--wm-border, #27272a);
+  border-radius: 3px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 8px;
+}
+
+.terminal-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--wm-radius-sm, 4px);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 10px;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+html.wm-terminal-header .terminal-settings-mount,
+html.wm-terminal-header .terminal-auth-mount {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .terminal-search-btn:hover,
+  .terminal-icon-btn:hover {
+    background: var(--wm-muted, #202024);
+    border-color: var(--wm-border-strong, #3f3f46);
+    color: var(--text);
+  }
+}
+
+.terminal-search-btn:focus-visible,
+.terminal-region-select:focus-visible,
+.terminal-icon-btn:focus-visible,
+html.wm-terminal-header .terminal-header button:focus-visible,
+html.wm-terminal-header .terminal-header select:focus-visible {
+  outline: 2px solid var(--wm-ring, #71717a);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1100px) and (min-width: 769px) {
+  html.wm-terminal-header .terminal-header {
+    grid-template-columns: minmax(210px, 1fr) minmax(180px, 300px) minmax(180px, 1fr);
+    padding-inline: 8px;
+  }
+
+  .terminal-header-context-copy {
+    max-width: 130px;
+  }
+
+  .terminal-region-select {
+    max-width: 96px;
+  }
+
+  .terminal-search-label {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  html.wm-terminal-header .terminal-header {
+    display: none;
+  }
+}

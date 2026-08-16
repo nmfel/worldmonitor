@@ -1,3 +1,28 @@
-.map-context-menu { position: fixed; z-index: 9999; background: var(--panel-bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 0; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-.map-context-menu-item { padding: 6px 12px; font-size: calc(0.82rem * var(--wm-panel-effective-scale, 1)); cursor: pointer; color: var(--text-primary); }
-.map-context-menu-item:hover { background: var(--hover-bg); }
+.map-context-menu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 180px;
+  padding: 4px;
+  background: var(--wm-popover, var(--panel-bg));
+  border: 1px solid var(--wm-border, var(--border));
+  border-radius: var(--wm-radius-md, 6px);
+  box-shadow: 0 8px 24px var(--shadow-color);
+}
+
+.map-context-menu-item {
+  min-height: var(--wm-control-sm, 28px);
+  padding: 6px 8px;
+  border-radius: var(--wm-radius-sm, 4px);
+  color: var(--wm-popover-foreground, var(--text));
+  cursor: pointer;
+  font-size: calc(11px * var(--wm-panel-effective-scale, 1));
+}
+
+.map-context-menu-item:hover {
+  background: var(--wm-accent, var(--surface-hover));
+}
+
+.map-context-menu-item:focus-visible {
+  outline: 1px solid var(--wm-ring, var(--accent));
+  outline-offset: -1px;
+}

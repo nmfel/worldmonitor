@@ -83,6 +83,42 @@
   font-weight: 600;
 }
 
+.panel-tabs {
+  gap: var(--wm-space-1, 4px);
+  padding: var(--wm-space-1, 4px) var(--wm-space-2, 8px);
+  background: var(--wm-card, var(--bg));
+  border-bottom-color: var(--wm-border-subtle, var(--border));
+}
+
+.panel-tab {
+  min-height: var(--wm-control-sm, 28px);
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  border-radius: var(--wm-radius-sm, 4px);
+  color: var(--wm-muted-foreground, var(--text-dim));
+  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  font-weight: 500;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.panel-tab:hover {
+  background: var(--wm-muted, var(--overlay-subtle));
+  color: var(--text);
+}
+
+.panel-tab.active {
+  background: var(--wm-accent, var(--surface-active));
+  border-color: var(--wm-border, var(--border));
+  color: var(--wm-accent-foreground, var(--accent));
+  font-weight: 600;
+}
+
+.panel-tab:focus-visible {
+  outline: 1px solid var(--wm-ring, var(--accent));
+  outline-offset: 1px;
+}
+
 /* ----------------------------------------------------------
    China Intelligence Panels
    Keep the China surfaces on the same compact, source-led rhythm

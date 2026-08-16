@@ -69,6 +69,11 @@ import {
   buildDefaultTabPanels,
 } from '@/services/tab-store';
 import type { PanelTab, TabsState } from '@/services/tab-store';
+import { WorkspaceStore, type PanelPlacement, type Workspace } from '@/services/workspace-store';
+import { buildActivationState, getChangedModuleIds, isWorkspaceModeEnabled } from '@/services/workspace-activation';
+import { ActiveWorkspaceLayoutController } from '@/services/active-workspace-layout-controller';
+import { WorkspaceSidebar } from '@/components/WorkspaceSidebar';
+import { TerminalHeader } from '@/components/TerminalHeader';
 import { showToast } from '@/utils';
 import { loadMcpPanels, saveMcpPanel } from '@/services/mcp-store';
 import type { McpPanelSpec } from '@/services/mcp-store';
@@ -82,7 +87,16 @@ import { markLcpDebug } from '@/utils/lcp-debug';
 import type { Panel } from '@/components/Panel';
 import type { SupplyChainPanel } from '@/components/SupplyChainPanel';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
-import { loadPanelCollapsed, loadPanelColSpans, loadPanelSpans } from '@/utils/panel-storage';
+import {
+  clearPanelColSpan,
+  clearPanelSpan,
+  loadPanelCollapsed,
+  loadPanelColSpans,
+  loadPanelSpans,
+  savePanelCollapsed,
+  savePanelColSpan,
+  savePanelSpan,
+} from '@/utils/panel-storage';
 import { measure, mutate } from '@/utils/layout-batch';
 import { applyPanelFontScale } from '@/services/font-scale-settings';
 import {
@@ -410,6 +424,11 @@ export class PanelLayoutManager implements AppModule {
   private mobilePanelNav: MobilePanelNav | null = null;
   private mobileMapCollapseBtn: HTMLButtonElement | null = null;
   private panelTabBar: PanelTabBar | null = null;
+  private workspaceSidebar: WorkspaceSidebar | null = null;
+  private terminalHeader: TerminalHeader | null = null;
+  private workspaceStore: WorkspaceStore | null = null;
+  private workspaceLayoutController: ActiveWorkspaceLayoutController | null = null;
+  private workspaceScrollPositions = new Map<string, number>();
   private tabsState: TabsState | null = null;
   private aviationCommandBar: AviationCommandBar | null = null;
   private readonly applyTimeRangeFilterDebounced: (() => void) & { cancel(): void };
@@ -734,6 +753,14 @@ export class PanelLayoutManager implements AppModule {
     this.mobileMapCollapseBtn = null;
     this.panelTabBar?.destroy();
     this.panelTabBar = null;
+    this.workspaceSidebar?.destroy();
+    this.workspaceSidebar = null;
+    this.terminalHeader?.destroy();
+    this.terminalHeader = null;
+    this.workspaceLayoutController = null;
+    this.workspaceStore = null;
+    this.workspaceScrollPositions.clear();
+    document.documentElement.classList.remove('wm-workspace-sidebar', 'wm-workspace-sidebar-collapsed');
     // Clean up happy variant panels
     destroyOnce(this.ctx.tvMode);
     this.ctx.tvMode = null;
@@ -894,7 +921,6 @@ export class PanelLayoutManager implements AppModule {
     setTrustedHtml(this.ctx.container, trustedHtml(`
       ${this.ctx.isDesktopApp ? '<div class="tauri-titlebar" data-tauri-drag-region></div>' : ''}
       <a href="#main" class="skip-link">Skip to main content</a>
-      <div id="proBannerSlot" class="pro-banner-slot" aria-live="polite"></div>
       <div class="header">
         <div class="header-left">
           <div class="variant-switcher">${(() => {
@@ -1052,15 +1078,9 @@ export class PanelLayoutManager implements AppModule {
           <span class="mobile-menu-item-icon">${getCurrentTheme() === 'dark' ? '☀️' : '🌙'}</span>
           <span class="mobile-menu-item-label">${getCurrentTheme() === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
         </button>
-        <a class="mobile-menu-item" href="https://x.com/eliehabib" target="_blank" rel="noopener">
-          <span class="mobile-menu-item-icon"><svg class="x-logo" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
-          <span class="mobile-menu-item-label">@eliehabib</span>
-        </a>
         <div class="mobile-menu-divider"></div>
         <div class="mobile-menu-footer-links">
           ${referenceLinksHtml}
-          <a href="${this.ctx.isDesktopApp ? 'https://www.worldmonitor.app/pro#pricing' : '/pro#pricing'}" target="_blank" rel="noopener">Pricing</a>
-          <a href="${this.ctx.isDesktopApp ? 'https://worldmonitor.app/blog/' : 'https://www.worldmonitor.app/blog/'}" target="_blank" rel="noopener">Blog</a>
           <a href="${this.ctx.isDesktopApp ? 'https://worldmonitor.app/docs' : 'https://www.worldmonitor.app/docs'}" target="_blank" rel="noopener">Docs</a>
           <a href="https://status.worldmonitor.app/" target="_blank" rel="noopener">Status</a>
         </div>
@@ -1139,20 +1159,18 @@ export class PanelLayoutManager implements AppModule {
           <img src="/favico/android-chrome-96x96.png" alt="" width="28" height="28" loading="lazy" decoding="async" class="site-footer-icon" />
           <div class="site-footer-brand-text">
             <span class="site-footer-name">WORLD MONITOR</span>
-            <span class="site-footer-sub">v${__APP_VERSION__} &middot; <a href="https://x.com/eliehabib" target="_blank" rel="noopener" class="site-footer-credit">@eliehabib</a></span>
+            <span class="site-footer-sub">v${__APP_VERSION__}</span>
           </div>
         </div>
+
         <nav>
           ${referenceLinksHtml}
-          <a href="${this.ctx.isDesktopApp ? 'https://www.worldmonitor.app/pro#pricing' : '/pro#pricing'}" target="_blank" rel="noopener">Pricing</a>
-          <a href="${this.ctx.isDesktopApp ? 'https://worldmonitor.app/blog/' : 'https://www.worldmonitor.app/blog/'}" target="_blank" rel="noopener">Blog</a>
           <a href="${this.ctx.isDesktopApp ? 'https://worldmonitor.app/docs' : 'https://www.worldmonitor.app/docs'}" target="_blank" rel="noopener">Docs</a>
           <a href="https://status.worldmonitor.app/" target="_blank" rel="noopener">Status</a>
           <a href="https://github.com/koala73/worldmonitor" target="_blank" rel="noopener">GitHub</a>
-          <a href="https://discord.gg/re63kWKxaz" target="_blank" rel="noopener">Discord</a>
-          <a href="https://x.com/worldmonitorai" target="_blank" rel="noopener">X</a>
           ${this.ctx.isDesktopApp ? '' : `<span id="footerDownloadMount"></span>`}
         </nav>
+
         <span class="site-footer-copy">&copy; ${new Date().getFullYear()} World Monitor</span>
       </footer>
     `, "legacy direct innerHTML migration"));
@@ -1191,6 +1209,50 @@ export class PanelLayoutManager implements AppModule {
   // ============================================
 
   private initPanelTabs(): void {
+    if (isWorkspaceModeEnabled()) {
+      const store = new WorkspaceStore(SITE_VARIANT);
+      this.workspaceStore = store;
+      this.workspaceLayoutController = new ActiveWorkspaceLayoutController(store, isWorkspaceModeEnabled);
+      store.migrateFromLegacy(
+        STORAGE_KEYS.panels,
+        this.ctx.PANEL_ORDER_KEY,
+        `worldmonitor-tabs-v1:${SITE_VARIANT}`,
+      );
+      const activeId = store.getActiveWorkspaceId();
+      const ws = activeId ? store.getWorkspace(activeId) : store.listWorkspaces()[0];
+      if (ws) this.activateWorkspace(ws);
+      this.terminalHeader = new TerminalHeader({
+        workspaceName: ws?.name ?? t('dashboardTabs.defaultName'),
+        variant: SITE_VARIANT,
+        isDesktopApp: this.ctx.isDesktopApp,
+        labels: {
+          search: t('header.search'),
+          fullscreen: t('header.fullscreen'),
+          selectRegion: t('header.selectRegion'),
+          regions: [
+            ['global', t('components.deckgl.views.global')],
+            ['america', t('components.deckgl.views.americas')],
+            ['mena', t('components.deckgl.views.mena')],
+            ['eu', t('components.deckgl.views.europe')],
+            ['asia', t('components.deckgl.views.asia')],
+            ['latam', t('components.deckgl.views.latam')],
+            ['africa', t('components.deckgl.views.africa')],
+            ['oceania', t('components.deckgl.views.oceania')],
+          ] as const,
+        },
+      });
+      this.ctx.container.querySelector('.header')?.replaceWith(this.terminalHeader.getElement());
+      document.documentElement.classList.add('wm-terminal-header');
+      this.workspaceSidebar = new WorkspaceSidebar({
+        store,
+        variant: SITE_VARIANT,
+        activate: (workspace) => this.activateWorkspace(workspace),
+        openSettings: () => this.ctx.unifiedSettings?.open('panels'),
+      });
+      document.body.appendChild(this.workspaceSidebar.getElement());
+      document.documentElement.classList.add('wm-workspace-sidebar');
+      return;
+    }
     const mount = document.getElementById('panelTabsMount');
     if (!mount) return;
 
@@ -1601,8 +1663,10 @@ export class PanelLayoutManager implements AppModule {
     });
   }
 
-  applyPanelSettings(): void {
+  applyPanelSettings(keys?: Iterable<string>): void {
+    const keyFilter = keys ? new Set(keys) : null;
     Object.entries(this.ctx.panelSettings).forEach(([key, config]) => {
+      if (keyFilter && !keyFilter.has(key)) return;
       if (key === 'map') {
         const mapSection = document.getElementById('mapSection');
         if (mapSection) {
@@ -1645,6 +1709,89 @@ export class PanelLayoutManager implements AppModule {
       }
     });
     this.mobilePanelNav?.refresh();
+  }
+
+  public persistWorkspacePanelEnabled(panelId: string, enabled: boolean): void {
+    this.workspaceLayoutController?.setEnabled(panelId, enabled, this.ctx.panelSettings[panelId]);
+  }
+
+  public persistWorkspaceSettings(): void {
+    this.workspaceLayoutController?.syncSettings(this.ctx.panelSettings);
+  }
+
+  public activateWorkspace(workspace: Workspace): boolean {
+    if (!isWorkspaceModeEnabled() || workspace.variant !== SITE_VARIANT) return false;
+    const panelsGrid = document.getElementById('panelsGrid');
+    const outgoingId = this.workspaceStore?.getActiveWorkspaceId();
+    if (outgoingId && outgoingId !== workspace.id && panelsGrid) {
+      this.workspaceScrollPositions.set(outgoingId, panelsGrid.scrollTop);
+    }
+    const currentSettings = this.ctx.panelSettings;
+    const activation = buildActivationState(workspace, currentSettings);
+    const changedKeys = getChangedModuleIds(currentSettings, activation.panelSettings);
+
+    this.workspaceLayoutController?.runApplying(() => {
+      this.ctx.panelSettings = activation.panelSettings;
+      saveToStorage(STORAGE_KEYS.panels, activation.panelSettings);
+      saveToStorage(this.ctx.PANEL_ORDER_KEY, activation.panelOrder);
+      saveToStorage(`${this.ctx.PANEL_ORDER_KEY}-bottom-set`, activation.bottomSet);
+      this.bottomSetMemory = new Set(activation.bottomSet);
+      this.applyWorkspaceLayout(activation.placements);
+      this.applyPanelSettings(changedKeys);
+      this.applySavedPanelOrder();
+    });
+    this.ctx.unifiedSettings?.refreshPanelToggles();
+    this.mountLiveNewsIfReady();
+    this.scheduleLoadAllData();
+    this.terminalHeader?.setWorkspaceName(workspace.name);
+    this.workspaceStore?.setActiveWorkspaceId(workspace.id);
+    const saved = panelsGrid ? this.workspaceScrollPositions.get(workspace.id) : undefined;
+    if (panelsGrid && typeof saved === 'number') {
+      requestAnimationFrame(() => {
+        panelsGrid.scrollTop = Math.max(0, Math.min(saved, panelsGrid.scrollHeight - panelsGrid.clientHeight));
+      });
+    }
+    return true;
+  }
+
+  private applyWorkspaceLayout(placements: ReadonlyMap<string, PanelPlacement>): void {
+    const rowSpans = loadPanelSpans();
+    const colSpans = loadPanelColSpans();
+    const collapsed = loadPanelCollapsed();
+
+    for (const [key, placement] of placements) {
+      const element = this.ctx.panels[key]?.getElement()
+        ?? document.querySelector<HTMLElement>(`[data-panel="${CSS.escape(key)}"]`);
+      if (placement.rowSpan === undefined) {
+        if (rowSpans[key] !== undefined) clearPanelSpan(key);
+      } else if (rowSpans[key] !== placement.rowSpan) {
+        savePanelSpan(key, placement.rowSpan);
+      }
+      if (element) {
+        for (const className of [...element.classList]) {
+          if (/^span-\d+$/.test(className)) element.classList.remove(className);
+        }
+        if (placement.rowSpan !== undefined) element.classList.add(`span-${placement.rowSpan}`);
+      }
+
+      if (placement.colSpan === undefined) {
+        if (colSpans[key] !== undefined) clearPanelColSpan(key);
+      } else if (colSpans[key] !== placement.colSpan) {
+        savePanelColSpan(key, placement.colSpan);
+      }
+      if (element) {
+        for (const className of [...element.classList]) {
+          if (/^col-span-\d+$/.test(className)) element.classList.remove(className);
+        }
+        if (placement.colSpan !== undefined) element.classList.add(`col-span-${placement.colSpan}`);
+      }
+
+      const targetCollapsed = placement.collapsed === true;
+      if ((collapsed[key] === true) !== targetCollapsed) savePanelCollapsed(key, targetCollapsed);
+      const collapseButton = element?.querySelector<HTMLButtonElement>('.panel-collapse-btn');
+      const elementCollapsed = element?.classList.contains('panel-collapsed') === true;
+      if (collapseButton && elementCollapsed !== targetCollapsed) collapseButton.click();
+    }
   }
 
   /**
@@ -2000,6 +2147,11 @@ export class PanelLayoutManager implements AppModule {
   }
 
   private afterPanelMounted(key: string, panel: Panel): void {
+    panel.setLayoutMutationCallbacks({
+      onRowSpanChanged: (panelId, span) => this.workspaceLayoutController?.setSpan(panelId, 'rowSpan', span),
+      onColSpanChanged: (panelId, span) => this.workspaceLayoutController?.setSpan(panelId, 'colSpan', span),
+      onCollapsedChanged: (panelId, collapsed) => this.workspaceLayoutController?.setCollapsed(panelId, collapsed),
+    });
     const config = this.ctx.panelSettings[key];
     if (config) panel.toggle(config.enabled);
     this.observePanelForHydration(panel);
@@ -3784,6 +3936,7 @@ export class PanelLayoutManager implements AppModule {
             this.bottomSetMemory.delete(key);
           }
           this.savePanelOrder();
+          this.workspaceLayoutController?.replaceOrder(this.resolvedPanelOrder, this.bottomSetMemory);
         }
       }
       dragStarted = false;

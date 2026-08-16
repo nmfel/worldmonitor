@@ -2,22 +2,6 @@
   contain: layout;
 }
 
-.pro-banner-slot {
-  box-sizing: border-box;
-  flex: 0 0 auto;
-  min-height: 0;
-}
-
-html.wm-pro-banner-reserved .pro-banner-slot {
-  min-height: var(--wm-pro-banner-slot-height, 40px);
-}
-
-.pro-banner-slot .pro-banner {
-  box-sizing: border-box;
-  min-height: var(--wm-pro-banner-slot-height, 40px);
-  width: 100%;
-}
-
 .header-right {
   --header-auth-slot-width: 200px;
   --header-findings-slot-width: 72px;
@@ -96,4 +80,37 @@ html.wm-pro-banner-reserved .pro-banner-slot {
 #unifiedSettingsMount:empty,
 #authWidgetMount:empty {
   visibility: hidden;
+}
+
+.header {
+  color: var(--text-secondary);
+}
+
+.header-right {
+  gap: var(--wm-space-2, 8px);
+}
+
+#missionPresetMount,
+#unifiedSettingsMount,
+#authWidgetMount {
+  border-radius: var(--wm-radius-sm, 4px);
+}
+
+#missionPresetMount {
+  min-height: var(--wm-control-sm, 28px);
+}
+
+#unifiedSettingsMount {
+  min-width: var(--wm-control-sm, 28px);
+  min-height: var(--wm-control-sm, 28px);
+}
+
+#authWidgetMount {
+  min-height: var(--wm-control-md, 32px);
+}
+
+.auth-header-skeleton {
+  background: var(--wm-muted, var(--surface-hover));
+  border-color: var(--wm-border, var(--border));
+  border-radius: var(--wm-radius-sm, 4px);
 }

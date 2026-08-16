@@ -249,6 +249,9 @@ export interface EventHandlerCallbacks {
   stopLayerActivity?: (layer: keyof MapLayers) => void;
   mountLiveNewsIfReady?: () => void;
   isFreeTierFallbackActive?: () => boolean;
+  onPanelEnabled?: (panelId: string, config: PanelConfig) => void;
+  onPanelDisabled?: (panelId: string, config: PanelConfig) => void;
+  onSettingsSaved?: () => void;
 }
 
 export class EventHandlerManager implements AppModule {
@@ -354,6 +357,7 @@ export class EventHandlerManager implements AppModule {
     userSetPanelEnabled(config, true);
     trackPanelToggled(panelId, true);
     saveToStorage(STORAGE_KEYS.panels, this.ctx.panelSettings);
+    this.callbacks.onPanelEnabled?.(panelId, config);
     this.applyPanelSettings();
     this.ctx.unifiedSettings?.refreshPanelToggles();
 
@@ -650,6 +654,7 @@ export class EventHandlerManager implements AppModule {
       // double-fired the lifecycle hook for live-news / live-webcams.
       trackPanelToggled(panelId, false);
       saveToStorage(STORAGE_KEYS.panels, this.ctx.panelSettings);
+      this.callbacks.onPanelDisabled?.(panelId, config);
       this.applyPanelSettings();
       this.ctx.unifiedSettings?.refreshPanelToggles();
       // push to undo stack (cap size for memory safety)
@@ -1807,6 +1812,7 @@ export class EventHandlerManager implements AppModule {
         saveToStorage(STORAGE_KEYS.panels, this.ctx.panelSettings);
         this.applyPanelSettings();
         this.callbacks.updateSearchIndex();
+        this.callbacks.onSettingsSaved?.();
       },
       getDisabledSources: () => this.ctx.disabledSources,
       toggleSource: (name: string) => {
