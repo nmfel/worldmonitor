@@ -25,14 +25,8 @@ name: MCP Live Smoke
 # NOT pull_request: the target is live production, not PR code — a PR run
 # could neither exercise its own changes nor fail for reasons the PR caused.
 
+# Fork policy: upstream production probe; manual inspection only.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/mcp-live-smoke.mjs'
-      - '.github/workflows/mcp-live-smoke.yml'
-  schedule:
-    - cron: '23 */6 * * *'
   workflow_dispatch:
 
 permissions:

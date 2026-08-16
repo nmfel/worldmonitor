@@ -14,9 +14,8 @@ name: Publish CLI to npm
 # Triggered by a CLI-specific tag (cli-v1.2.3) so it is independent of desktop
 # app releases, or manually via workflow_dispatch (with a dry-run option).
 
+# Fork policy: upstream npm publication; manual dry-run remains available.
 on:
-  push:
-    tags: ['cli-v*']
   workflow_dispatch:
     inputs:
       dry_run:

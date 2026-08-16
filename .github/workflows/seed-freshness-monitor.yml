@@ -1,8 +1,7 @@
 name: Seed Freshness Monitor
 
+# Fork policy: upstream ingestion monitor; manual inspection only.
 on:
-  schedule:
-    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 # A newer ingestion observation supersedes an older one.

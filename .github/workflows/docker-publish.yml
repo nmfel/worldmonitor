@@ -1,8 +1,7 @@
 name: Publish Docker image
 
+# Fork policy: upstream GHCR publication; manual inspection only.
 on:
-  release:
-    types: [published]
   workflow_dispatch:
 
 jobs:

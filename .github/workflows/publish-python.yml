@@ -14,9 +14,8 @@ name: Publish Python SDK to PyPI
 # Triggered by an SDK-specific tag (py-v1.2.3) so it is independent of the
 # npm CLI and desktop releases, or manually via workflow_dispatch (dry run).
 
+# Fork policy: upstream PyPI publication; manual dry-run remains available.
 on:
-  push:
-    tags: ['py-v*']
   workflow_dispatch:
     inputs:
       dry_run:

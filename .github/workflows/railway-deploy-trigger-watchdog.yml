@@ -3,6 +3,7 @@ run-name: Manual Railway rollback watchdog (${{ inputs.mode }})
 
 # Transitional rollback surface only. It may inspect or dispatch recovery only
 # after an explicit manual invocation; do not add a schedule or dispatcher.
+# Fork policy: upstream Railway recovery remains manual-only.
 on:
   workflow_dispatch:
     inputs:

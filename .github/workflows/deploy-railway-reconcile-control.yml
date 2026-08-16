@@ -4,13 +4,8 @@ name: Deploy Railway Reconcile Control
 # the isolated Durable Object and its authenticated API; it does not activate
 # the production deploy-trigger cutover or scheduled auto recovery.
 
+# Fork policy: upstream reconciliation control deployment; manual inspection only.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'workers/railway-reconcile-control/**'
-      - '.github/workflows/deploy-railway-reconcile-control.yml'
-      - 'tests/deploy-railway-reconcile-control-workflow.test.mjs'
   workflow_dispatch:
 
 permissions:

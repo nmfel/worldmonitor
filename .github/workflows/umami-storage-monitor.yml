@@ -1,8 +1,7 @@
 name: Umami Storage Monitor
 
+# Fork policy: upstream analytics storage monitor; manual inspection only.
 on:
-  schedule:
-    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 concurrency:

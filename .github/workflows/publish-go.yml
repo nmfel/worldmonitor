@@ -10,9 +10,8 @@ name: Publish Go SDK to the module proxy
 # so per Go's monorepo convention its release tags are prefixed with the
 # module directory: sdk/go/v1.2.3.
 
+# Fork policy: upstream Go module publication; manual inspection only.
 on:
-  push:
-    tags: ['sdk/go/v*']
   workflow_dispatch:
     inputs:
       version:

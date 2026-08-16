@@ -15,11 +15,8 @@ name: Convex Deploy
 # against the prod deployment, or via the Convex dashboard → Settings →
 # Deploy Keys → "Production: deploy" scope.
 
+# Fork policy: upstream Convex deployment; manual inspection only.
 on:
-  push:
-    branches: [main]
-  # Manual fallback so the operator can re-run a deploy without a code change
-  # (e.g. recover from a failed deploy or push a hotfix off-cycle).
   workflow_dispatch:
 
 permissions:

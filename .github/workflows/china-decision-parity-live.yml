@@ -50,27 +50,8 @@ name: China Decision Parity Live Probe
 # neither exercise its own changes nor fail for reasons the PR caused. The
 # static half already runs on every PR via `npm run test:data`.
 
+# Fork policy: upstream deployment probe; manual inspection only.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/audit-china-decision-parity.mjs'
-      - 'scripts/lib/js-source-structure.mjs'
-      # The audit imports validateChinaDecisionSignalSnapshot from the seeder
-      # for both the access-gating truth table and the live probe's contract
-      # check, so a change there changes what this workflow asserts.
-      - 'scripts/seed-china-decision-signals.mjs'
-      # Same rule, one indirection further out: since #5647 the audit derives
-      # CHINA_DECISION_PARITY_MANIFEST — every group id and provenance family it
-      # asserts — from the wire contract rather than a local literal. Editing
-      # either the reader or the manifest it parses silently changes this
-      # workflow's assertions, which is exactly the class of unwatched drift
-      # #5643 exists to close.
-      - 'scripts/lib/openapi-codegen.mjs'
-      - 'shared/china-decision-signal-manifest.ts'
-      - '.github/workflows/china-decision-parity-live.yml'
-  schedule:
-    - cron: '11 */6 * * *'
   workflow_dispatch:
     inputs:
       base_url:

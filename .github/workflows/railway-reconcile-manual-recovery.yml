@@ -1,6 +1,7 @@
 name: Railway Reconcile Manual Recovery
 run-name: Railway recovery · ${{ inputs.decision }} · run ${{ github.run_id }}
 
+# Fork policy: upstream Railway recovery remains manual-only.
 on:
   workflow_dispatch:
     inputs:

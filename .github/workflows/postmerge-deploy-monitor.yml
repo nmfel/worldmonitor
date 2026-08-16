@@ -15,9 +15,8 @@ name: Post-merge Deploy Monitor
 # gating on main would silence exactly the alarms we want (#5565, the same
 # reasoning analytics-collector-monitor.yml documents).
 
+# Fork policy: upstream production deploy monitor; manual inspection only.
 on:
-  schedule:
-    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 permissions:

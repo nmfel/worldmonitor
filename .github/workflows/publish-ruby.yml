@@ -17,9 +17,8 @@ name: Publish Ruby SDK to RubyGems
 # Triggered by an SDK-specific tag (gem-v1.2.3) so it is independent of the
 # npm CLI and desktop releases, or manually via workflow_dispatch (dry run).
 
+# Fork policy: upstream RubyGems publication; manual dry-run remains available.
 on:
-  push:
-    tags: ['gem-v*']
   workflow_dispatch:
     inputs:
       dry_run:

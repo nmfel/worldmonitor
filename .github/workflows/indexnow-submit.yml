@@ -5,8 +5,8 @@ name: IndexNow Submission
 # deployment succeeded. The changed-file gate avoids resubmitting unchanged URLs
 # on unrelated deploys; workflow_dispatch remains available for an
 # operator-requested recovery.
+# Fork policy: upstream domain indexing; manual inspection only.
 on:
-  deployment_status:
   workflow_dispatch:
 
 permissions:

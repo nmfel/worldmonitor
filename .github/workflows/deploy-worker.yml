@@ -10,13 +10,8 @@ name: Deploy api-cors-preflight Worker
 #                           Routes:Edit on the worldmonitor.app zone.
 #   CLOUDFLARE_ACCOUNT_ID — CF account that owns the Worker.
 
+# Fork policy: upstream Cloudflare deployment; manual inspection only.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'workers/api-cors-preflight/**'
-      - 'api/_bootstrap-public-tier.js'
-      - '.github/workflows/deploy-worker.yml'
   workflow_dispatch:
 
 permissions:

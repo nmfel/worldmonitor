@@ -1,8 +1,7 @@
 name: Railway Native Deploy Health
 
+# Fork policy: upstream Railway monitor; manual inspection only.
 on:
-  schedule:
-    - cron: '17 */6 * * *'
   workflow_dispatch:
 
 concurrency:

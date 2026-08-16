@@ -5,20 +5,8 @@ name: Prepare Desktop Release
 # missing link: turn a checked-in version bump into the exact tag that workflow
 # expects, then dispatch it explicitly. A GITHUB_TOKEN tag push does not start a
 # second push-triggered workflow, so the dispatch is deliberate.
+# Fork policy: upstream desktop release train; manual inspection only.
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/build-desktop.yml'
-      - '.github/workflows/desktop-release-train.yml'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'scripts/resolve-desktop-release.mjs'
-      - 'src-tauri/Cargo.lock'
-      - 'src-tauri/Cargo.toml'
-      - 'src-tauri/tauri.conf.json'
-  schedule:
-    - cron: '17 4 * * *'
   workflow_dispatch:
 
 permissions:
