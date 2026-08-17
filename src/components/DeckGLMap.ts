@@ -131,6 +131,7 @@ import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 import { onEntitlementChange } from '@/services/entitlements';
 import { hasPremiumAccess } from '@/services/panel-gating';
 import { trackGateHit } from '@/services/analytics';
+import { isWorkspaceModeEnabled } from '@/services/workspace-activation';
 import { MapPopup, type PopupType } from './MapPopup';
 import { renderMilitaryVesselTooltipHtml } from './deckgl-tooltip-renderers';
 import type { GetChokepointStatusResponse } from '@/services/supply-chain';
@@ -5550,8 +5551,10 @@ export class DeckGLMap {
   }
 
   private createLayerToggles(): void {
+    const isWorkspace = isWorkspaceModeEnabled();
+
     const toggles = document.createElement('div');
-    toggles.className = 'layer-toggles deckgl-layer-toggles';
+    toggles.className = `layer-toggles deckgl-layer-toggles${isWorkspace ? ' intelligence-layers' : ''}`;
 
     const layerDefs = getLayersForVariant((SITE_VARIANT || 'full') as MapVariant, 'flat');
     const premiumUnlocked = hasPremiumAccess(getAuthState());
@@ -5564,41 +5567,59 @@ export class DeckGLMap {
       hasExplanation: hasCuratedLayerExplanation(def.key),
     }));
 
+    const categoryMap = this.buildLayerCategoryMap(layerConfig);
+    const categories = Object.entries(categoryMap).map(([category, layers]) => ({ category, layers }));
+
+    // Build header with active count
+    const activeCount = layerConfig.filter(l => this.state.layers[l.key]).length;
+
     setTrustedHtml(toggles, trustedHtml(`
-      <div class="toggle-header">
-        <span>${t('components.deckgl.layersTitle')}</span>
-        <button class="layer-help-btn" aria-label="${t('components.deckgl.layerGuide')}">?</button>
-        <button class="toggle-collapse">&#9660;</button>
+      <div class="intelligence-layers-header module-toolbar">
+        <div class="intelligence-layers-title">
+          <strong>INTELLIGENCE LAYERS</strong>
+          <span class="module-meta-value" aria-live="polite">${activeCount} ACTIVE</span>
+        </div>
+        <div class="intelligence-layers-actions">
+          <input type="text" class="layer-search module-filter" placeholder="${t('components.deckgl.layerSearch')}" autocomplete="off" spellcheck="false" aria-label="${t('components.deckgl.layerSearch')}" />
+          <button class="layer-help-btn module-toolbar-action" aria-label="${t('components.deckgl.layerGuide')}" title="${t('components.deckgl.layerGuide')}">?</button>
+        </div>
       </div>
-      <input type="text" class="layer-search" placeholder="${t('components.deckgl.layerSearch')}" autocomplete="off" spellcheck="false" />
-      <div class="toggle-list" style="max-height: 32vh; overflow-y: auto; scrollbar-width: thin;">
-        ${layerConfig.map(({ key, label, icon, premium, explainLabel, hasExplanation }) => {
-          const isLocked = premium === 'locked' && !premiumUnlocked;
-          const isEnhanced = premium === 'enhanced' && !premiumUnlocked;
-          return `
-          <div class="layer-toggle-row" data-layer="${key}">
-            <label class="layer-toggle${isLocked ? ' layer-toggle-locked' : ''}" data-layer="${key}">
-              <input type="checkbox" ${this.state.layers[key as keyof MapLayers] ? 'checked' : ''}${isLocked ? ' disabled' : ''}>
-              <span class="toggle-icon">${icon}</span>
-              <span class="toggle-label">${label}${isLocked ? ' \uD83D\uDD12' : ''}${isEnhanced ? ' <span class="layer-pro-badge">PRO</span>' : ''}</span>
-            </label>
-            <button type="button" class="layer-explain-btn${hasExplanation ? ' has-layer-explanation' : ''}" data-layer="${key}" aria-label="${explainLabel}">i</button>
-          </div>`;
-        }).join('')}
+      <div class="intelligence-layers-list module-table-wrap" style="max-height: 38vh; overflow-y: auto; overscroll-behavior: contain;">
+        ${categories.map(({ category, layers }) => `
+          <div class="intelligence-category">
+            <div class="intelligence-category-header module-section-header">
+              <span class="module-section-title">${category}</span>
+              <span class="module-meta-value">${layers.filter(l => this.state.layers[l.key]).length} / ${layers.length}</span>
+            </div>
+            <div class="intelligence-category-rows">
+              ${layers.map(({ key, label, icon, premium, explainLabel, hasExplanation }) => {
+                const isLocked = premium === 'locked' && !premiumUnlocked;
+                const isEnhanced = premium === 'enhanced' && !premiumUnlocked;
+                const isActive = this.state.layers[key as keyof MapLayers];
+                return `
+                <div class="intelligence-layer-row module-status-row${isActive ? ' active' : ''}${isLocked ? ' locked' : ''}" data-layer="${key}" data-active="${isActive}">
+                  <label class="intelligence-layer-toggle">
+                    <input type="checkbox" class="module-badge" ${isActive ? 'checked' : ''}${isLocked ? ' disabled' : ''} aria-label="Toggle ${escapeHtml(label)}" />
+                    <span class="toggle-icon" aria-hidden="true">${icon}</span>
+                    <span class="toggle-label module-status-label">${escapeHtml(label)}</span>
+                    ${isLocked ? '<span class="locked-badge module-badge" aria-label="Premium only">🔒</span>' : ''}
+                    ${isEnhanced ? '<span class="enhanced-badge module-badge" aria-label="Enhanced for Pro">PRO</span>' : ''}
+                  </label>
+                  <button type="button" class="layer-explain-btn module-toolbar-action${hasExplanation ? ' has-layer-explanation' : ''}" data-layer="${key}" aria-label="${explainLabel}" title="${explainLabel}">i</button>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+        `).join('')}
       </div>
     `, "legacy direct innerHTML migration"));
-
-    const authorBadge = document.createElement('div');
-    authorBadge.className = 'map-author-badge';
-    authorBadge.textContent = '© Elie Habib · Someone™';
-    toggles.appendChild(authorBadge);
 
     this.container.appendChild(toggles);
 
     const lockedLayerControls = layerConfig
       .filter(({ premium }) => premium === 'locked')
       .map(({ key, label }) => {
-        const control = toggles.querySelector(`.layer-toggle[data-layer="${key}"]`);
+        const control = toggles.querySelector(`.intelligence-layer-row[data-layer="${key}"]`);
         return {
           key,
           label,
@@ -5611,11 +5632,6 @@ export class DeckGLMap {
     let lastSettledFree: boolean | null = null;
 
     // Reconcile premium controls whenever either entitlement signal changes.
-    // Pro can come from Clerk role or the Convex entitlement snapshot, and
-    // both subscriptions must remain live: a user can later downgrade or sign
-    // out after unlocking a layer. The initial pending state stays visually
-    // locked, but it must not be persisted as free until the tier settles (or
-    // App's bounded fallback explicitly heals it).
     const syncPremiumLayerControls = (): void => {
       const premiumUnlocked = hasPremiumAccess(getAuthState());
       const settledFree = isProTierResolved() && !premiumUnlocked;
@@ -5627,7 +5643,7 @@ export class DeckGLMap {
       for (const { key, label: layerLabel, control, input, labelSpan } of lockedLayerControls) {
         if (!control) continue;
         const locked = !premiumUnlocked;
-        control.classList.toggle('layer-toggle-locked', locked);
+        control.classList.toggle('locked', locked);
         if (input) {
           input.disabled = locked;
           if (settledFree && this.state.layers[key]) {
@@ -5640,7 +5656,7 @@ export class DeckGLMap {
         }
 
         if (labelSpan) {
-          labelSpan.textContent = locked ? `${layerLabel} 🔒` : layerLabel;
+          labelSpan.textContent = locked ? `${layerLabel}` : layerLabel;
         }
       }
 
@@ -5653,39 +5669,41 @@ export class DeckGLMap {
     this._unsubscribeAuthState = subscribeAuthState(syncPremiumLayerControls);
     this._unsubscribeEntitlement = onEntitlementChange(syncPremiumLayerControls);
 
-    // Bind toggle events
-    toggles.querySelectorAll('.layer-toggle input').forEach(input => {
+    // Bind toggle events - use the same logic as before
+    toggles.querySelectorAll('.intelligence-layer-row input[type="checkbox"]').forEach(input => {
       input.addEventListener('change', () => {
-        const layer = (input as HTMLInputElement).closest('.layer-toggle')?.getAttribute('data-layer') as keyof MapLayers;
-        if (layer) {
-          const enabled = (input as HTMLInputElement).checked;
-          if (!isLayerToggleAllowed(layer, this.state.layers[layer], hasPremiumAccess(getAuthState()))) {
-            (input as HTMLInputElement).checked = Boolean(this.state.layers[layer]);
-            return;
-          }
-          const prevRadar = this.state.layers.weather;
-          const prevCyber = this.state.layers.cyberThreats;
-          if (enabled && (layer === 'resilienceScore' || layer === 'ciiChoropleth')) {
-            const conflictingLayer = layer === 'resilienceScore' ? 'ciiChoropleth' : 'resilienceScore';
-            if (this.state.layers[conflictingLayer]) {
-              this.state.layers[conflictingLayer] = false;
-              const conflictingToggle = this.container.querySelector(`.layer-toggle[data-layer="${conflictingLayer}"] input`) as HTMLInputElement | null;
-              if (conflictingToggle) conflictingToggle.checked = false;
-              this.setLayerReady(conflictingLayer, false);
-              this.onLayerChange?.(conflictingLayer, false, 'programmatic');
-            }
-          }
-          this.state.layers[layer] = enabled;
-          if (layer === 'military' && !enabled) this.clearFlightTrails();
-          if (layer === 'flights') this.manageAircraftTimer(enabled);
-          if (this.state.layers.weather && !prevRadar) this.startWeatherRadar();
-          else if (!this.state.layers.weather && prevRadar) this.stopWeatherRadar();
-          if (this.state.layers.cyberThreats && !prevCyber && !this.aptGroupsLoaded) this.loadAptGroups();
-          this.render();
-          this.updateLegend();
-          this.onLayerChange?.(layer, enabled, 'user');
-          this.enforceLayerLimit();
+        const row = input.closest('.intelligence-layer-row');
+        const layer = row?.getAttribute('data-layer') as keyof MapLayers | null;
+        if (!layer) return;
+        const enabled = (input as HTMLInputElement).checked;
+        if (!isLayerToggleAllowed(layer, this.state.layers[layer], hasPremiumAccess(getAuthState()))) {
+          (input as HTMLInputElement).checked = Boolean(this.state.layers[layer]);
+          return;
         }
+        const prevRadar = this.state.layers.weather;
+        const prevCyber = this.state.layers.cyberThreats;
+        if (enabled && (layer === 'resilienceScore' || layer === 'ciiChoropleth')) {
+          const conflictingLayer = layer === 'resilienceScore' ? 'ciiChoropleth' : 'resilienceScore';
+          if (this.state.layers[conflictingLayer]) {
+            this.state.layers[conflictingLayer] = false;
+            const conflictingToggle = this.container.querySelector(`.intelligence-layer-row[data-layer="${conflictingLayer}"] input`) as HTMLInputElement | null;
+            if (conflictingToggle) conflictingToggle.checked = false;
+            this.setLayerReady(conflictingLayer, false);
+            this.onLayerChange?.(conflictingLayer, false, 'programmatic');
+          }
+        }
+        this.state.layers[layer] = enabled;
+        if (layer === 'military' && !enabled) this.clearFlightTrails();
+        if (layer === 'flights') this.manageAircraftTimer(enabled);
+        if (this.state.layers.weather && !prevRadar) this.startWeatherRadar();
+        else if (!this.state.layers.weather && prevRadar) this.stopWeatherRadar();
+        if (this.state.layers.cyberThreats && !prevCyber && !this.aptGroupsLoaded) this.loadAptGroups();
+        this.render();
+        this.updateLegend();
+        this.onLayerChange?.(layer, enabled, 'user');
+        this.enforceLayerLimit();
+        // Update active counts in header and category headers
+        this.updateLayerActiveCounts();
       });
     });
     this.enforceLayerLimit();
@@ -5703,27 +5721,147 @@ export class DeckGLMap {
     const helpBtn = toggles.querySelector('.layer-help-btn');
     helpBtn?.addEventListener('click', () => this.showLayerHelp());
 
-    // Collapse toggle
-    const collapseBtn = toggles.querySelector('.toggle-collapse');
-    const toggleList = toggles.querySelector('.toggle-list');
+    // Category collapse - only in workspace mode
+    if (isWorkspace) {
+      toggles.querySelectorAll('.intelligence-category-header').forEach(header => {
+        header.addEventListener('click', () => {
+          const category = header.closest('.intelligence-category');
+          const rows = category?.querySelector('.intelligence-category-rows');
+          rows?.classList.toggle('collapsed');
+          header.classList.toggle('collapsed');
+        });
+      });
+    }
 
     // Manual scroll: intercept wheel, prevent map zoom, scroll the list ourselves
+    const toggleList = toggles.querySelector('.intelligence-layers-list');
     if (toggleList) {
       toggles.addEventListener('wheel', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        toggleList.scrollTop += e.deltaY;
+        (toggleList as HTMLElement).scrollTop += e.deltaY;
       }, { passive: false });
       toggles.addEventListener('touchmove', (e) => e.stopPropagation(), { passive: false });
     }
-    bindLayerSearch(toggles);
-    const searchEl = toggles.querySelector('.layer-search') as HTMLElement | null;
 
-    collapseBtn?.addEventListener('click', () => {
-      toggleList?.classList.toggle('collapsed');
-      if (searchEl) searchEl.style.display = toggleList?.classList.contains('collapsed') ? 'none' : '';
-      if (collapseBtn) setTrustedHtml(collapseBtn, trustedHtml(toggleList?.classList.contains('collapsed') ? '&#9654;' : '&#9660;', "legacy direct innerHTML migration"));
-    });
+    bindLayerSearch(toggles);
+  }
+
+  private buildLayerCategoryMap(layerConfig: Array<{ key: keyof MapLayers; label: string; icon: string; premium?: 'locked' | 'enhanced'; explainLabel: string; hasExplanation: boolean }>): Record<string, typeof layerConfig> {
+    const categoryMap: Record<string, typeof layerConfig> = {
+      'SECURITY / CONFLICT': [],
+      'INFRASTRUCTURE': [],
+      'MONITORING / HAZARDS': [],
+      'MARITIME': [],
+      'AVIATION': [],
+      'SPACE': [],
+    };
+
+    const layerToCategory: Record<keyof MapLayers, string> = {
+      iranAttacks: 'SECURITY / CONFLICT',
+      hotspots: 'SECURITY / CONFLICT',
+      conflicts: 'SECURITY / CONFLICT',
+      bases: 'SECURITY / CONFLICT',
+      nuclear: 'SECURITY / CONFLICT',
+      irradiators: 'MONITORING / HAZARDS',
+      radiationWatch: 'MONITORING / HAZARDS',
+      spaceports: 'SPACE',
+      satellites: 'SPACE',
+      cables: 'INFRASTRUCTURE',
+      pipelines: 'INFRASTRUCTURE',
+      datacenters: 'INFRASTRUCTURE',
+      military: 'SECURITY / CONFLICT',
+      ais: 'MARITIME',
+      tradeRoutes: 'MARITIME',
+      flights: 'AVIATION',
+      protests: 'SECURITY / CONFLICT',
+      ucdpEvents: 'SECURITY / CONFLICT',
+      displacement: 'SECURITY / CONFLICT',
+      climate: 'MONITORING / HAZARDS',
+      weather: 'MONITORING / HAZARDS',
+      canadaRoads: 'INFRASTRUCTURE',
+      canadaAlerts: 'MONITORING / HAZARDS',
+      outages: 'INFRASTRUCTURE',
+      cyberThreats: 'MONITORING / HAZARDS',
+      natural: 'MONITORING / HAZARDS',
+      fires: 'MONITORING / HAZARDS',
+      waterways: 'MARITIME',
+      economic: 'INFRASTRUCTURE',
+      minerals: 'MONITORING / HAZARDS',
+      gpsJamming: 'MONITORING / HAZARDS',
+      ciiChoropleth: 'SECURITY / CONFLICT',
+      resilienceScore: 'SECURITY / CONFLICT',
+      sanctions: 'SECURITY / CONFLICT',
+      dayNight: 'SPACE',
+      webcams: 'AVIATION',
+      diseaseOutbreaks: 'MONITORING / HAZARDS',
+      storageFacilities: 'INFRASTRUCTURE',
+      fuelShortages: 'INFRASTRUCTURE',
+      liveTankers: 'MARITIME',
+      startupHubs: 'INFRASTRUCTURE',
+      techHQs: 'INFRASTRUCTURE',
+      accelerators: 'INFRASTRUCTURE',
+      cloudRegions: 'INFRASTRUCTURE',
+      techEvents: 'INFRASTRUCTURE',
+      stockExchanges: 'INFRASTRUCTURE',
+      financialCenters: 'INFRASTRUCTURE',
+      centralBanks: 'INFRASTRUCTURE',
+      commodityHubs: 'INFRASTRUCTURE',
+      gulfInvestments: 'INFRASTRUCTURE',
+      positiveEvents: 'MONITORING / HAZARDS',
+      kindness: 'MONITORING / HAZARDS',
+      happiness: 'MONITORING / HAZARDS',
+      speciesRecovery: 'MONITORING / HAZARDS',
+      renewableInstallations: 'INFRASTRUCTURE',
+      miningSites: 'MONITORING / HAZARDS',
+      processingPlants: 'MONITORING / HAZARDS',
+      commodityPorts: 'MARITIME',
+    };
+
+    for (const layer of layerConfig) {
+      const category = layerToCategory[layer.key] || 'INFRASTRUCTURE';
+      if (!categoryMap[category]) categoryMap[category] = [];
+      categoryMap[category].push(layer);
+    }
+
+    // Remove empty categories
+    for (const cat of Object.keys(categoryMap)) {
+      if (categoryMap[cat]?.length === 0) delete categoryMap[cat];
+    }
+
+    return categoryMap;
+  }
+
+  private updateLayerActiveCounts(): void {
+    const toggles = this.container.querySelector('.deckgl-layer-toggles');
+    if (!toggles) return;
+
+    const layerDefs = getLayersForVariant((SITE_VARIANT || 'full') as MapVariant, 'flat');
+    const layerConfig = layerDefs.map(def => ({
+      key: def.key,
+      label: resolveLayerLabel(def, t),
+    }));
+
+    const activeCount = layerConfig.filter(l => this.state.layers[l.key]).length;
+    const activeEl = toggles.querySelector('.intelligence-layers-title .module-meta-value');
+    if (activeEl) activeEl.textContent = `${activeCount} ACTIVE`;
+
+    const categoryMap = this.buildLayerCategoryMap(layerConfig.map(l => ({
+      key: l.key,
+      label: l.label,
+      icon: '',
+      explainLabel: '',
+      hasExplanation: false,
+    })));
+
+    for (const [category, layers] of Object.entries(categoryMap)) {
+      const activeInCategory = layers.filter(l => this.state.layers[l.key]).length;
+      const header = toggles.querySelector(`.intelligence-category-header[data-category="${category}"]`);
+      if (header) {
+        const meta = header.querySelector('.module-meta-value');
+        if (meta) meta.textContent = `${activeInCategory} / ${layers.length}`;
+      }
+    }
   }
 
   private showLayerExplanation(layer: keyof MapLayers): void {

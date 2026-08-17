@@ -19021,6 +19021,345 @@ html.wm-workspace-sidebar .panel-pro-badge {
   border-color: rgba(68, 255, 136, 0.2);
 }
 
+/* ============================================
+   Workspace mode: Intelligence Layers terminal-style control
+   ============================================ */
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers {
+  max-width: 280px;
+  max-height: 60vh;
+  border-radius: var(--wm-radius, 6px);
+  background: var(--wm-card, #0f0f12);
+  border: 1px solid var(--wm-border, #1f1f22);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--wm-border, #1f1f22);
+  flex-shrink: 0;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layers-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: calc(9px * var(--wm-panel-effective-scale, 1));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim, #888);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layers-title .module-meta-value {
+  font-size: calc(9px * var(--wm-panel-effective-scale, 1));
+  font-variant-numeric: tabular-nums;
+  color: var(--accent, #00d4ff);
+  background: rgba(0, 212, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layers-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .layer-search.module-filter {
+  width: 160px;
+  padding: 4px 8px;
+  background: var(--wm-muted, #18181b);
+  border: 1px solid var(--wm-border, #1f1f22);
+  border-radius: 3px;
+  color: var(--text, #fafafa);
+  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .layer-search.module-filter::placeholder {
+  color: var(--text-dim, #888);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .layer-search.module-filter:focus {
+  border-color: var(--accent, #00d4ff);
+  background: var(--wm-card, #0f0f12);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .layer-help-btn.module-toolbar-action {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: var(--wm-muted, #18181b);
+  border: 1px solid var(--wm-border, #1f1f22);
+  border-radius: 3px;
+  color: var(--text-dim, #888);
+  font-family: inherit;
+  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .layer-help-btn.module-toolbar-action:hover,
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .layer-help-btn.module-toolbar-action:focus-visible {
+  color: var(--accent, #00d4ff);
+  border-color: var(--accent, #00d4ff);
+  background: var(--wm-card, #0f0f12);
+  outline: none;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layers-list {
+  padding: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--wm-border, #1f1f22) transparent;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-category {
+  border-bottom: 1px solid var(--wm-border, #1f1f22);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-category:last-child {
+  border-bottom: none;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-category-header:hover {
+  background: var(--wm-muted, #18181b);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-category-header .module-section-title {
+  font-size: calc(8px * var(--wm-panel-effective-scale, 1));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim, #888);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-category-header .module-meta-value {
+  font-size: calc(8px * var(--wm-panel-effective-scale, 1));
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim, #888);
+  font-family: var(--font-mono, monospace);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-category-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-category-rows.collapsed {
+  display: none;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  background: transparent;
+  transition: background 0.12s ease;
+  min-height: 28px;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-row:hover {
+  background: var(--wm-muted, #18181b);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-row.active {
+  background: rgba(68, 255, 136, 0.08);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-row.active:hover {
+  background: rgba(68, 255, 136, 0.12);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-row.locked {
+  opacity: 0.7;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-toggle input.module-badge {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  border: 2px solid var(--wm-border, #1f1f22);
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  margin: 0;
+  position: relative;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-toggle input.module-badge:checked {
+  background: var(--semantic-normal, #44ff88);
+  border-color: var(--semantic-normal, #44ff88);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-toggle input.module-badge:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--wm-bg, #09090b);
+  font-size: calc(8px * var(--wm-panel-effective-scale, 1));
+  font-weight: bold;
+  line-height: 1;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-toggle input.module-badge:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-toggle .toggle-icon {
+  font-size: calc(11px * var(--wm-panel-effective-scale, 1));
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-toggle .toggle-label {
+  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  font-weight: 500;
+  color: var(--text, #fafafa);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-row.active .toggle-label {
+  color: var(--semantic-normal, #44ff88);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-layer-row.locked .toggle-label {
+  color: var(--text-dim, #888);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .locked-badge.module-badge,
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .enhanced-badge.module-badge {
+  font-size: calc(7px * var(--wm-panel-effective-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 1px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .locked-badge.module-badge {
+  color: var(--text-dim, #888);
+  background: transparent;
+  border: 1px solid var(--wm-border, #1f1f22);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .enhanced-badge.module-badge {
+  color: #d4a843;
+  background: rgba(212, 168, 67, 0.1);
+  border: 1px solid rgba(212, 168, 67, 0.3);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .layer-explain-btn.module-toolbar-action {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  padding: 0;
+  background: var(--wm-muted, #18181b);
+  border: 1px solid var(--wm-border, #1f1f22);
+  border-radius: 3px;
+  color: var(--text-dim, #888);
+  font-family: inherit;
+  font-size: calc(9px * var(--wm-panel-effective-scale, 1));
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .layer-explain-btn.module-toolbar-action.has-layer-explanation {
+  color: var(--accent, #00d4ff);
+  border-color: rgba(0, 212, 255, 0.45);
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .layer-explain-btn.module-toolbar-action:hover,
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .layer-explain-btn.module-toolbar-action:focus-visible,
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .layer-explain-btn.module-toolbar-action.active {
+  color: var(--semantic-normal, #44ff88);
+  border-color: var(--semantic-normal, #44ff88);
+  background: var(--wm-card, #0f0f12);
+  outline: none;
+}
+
+/* Category collapse indicator */
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-category-header.collapsed::after {
+  content: '▶';
+  font-size: calc(7px * var(--wm-panel-effective-scale, 1));
+  color: var(--text-dim, #888);
+  margin-left: 4px;
+  transition: transform 0.15s ease;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-category-header::after {
+  content: '▼';
+  font-size: calc(7px * var(--wm-panel-effective-scale, 1));
+  color: var(--text-dim, #888);
+  margin-left: 4px;
+  transition: transform 0.15s ease;
+}
+
+html.wm-workspace-sidebar .deckgl-layer-toggles.intelligence-layers .intelligence-category-header.collapsed::after {
+  transform: rotate(-90deg);
+}
+
 .deckgl-layer-toggles .layer-explain-btn {
   width: 22px;
   min-width: 22px;
