@@ -215,10 +215,13 @@ export class LiveWebcamsPanel extends Panel {
 
   private createToolbar(): void {
     this.toolbar = document.createElement('div');
-    this.toolbar.className = 'webcam-toolbar';
+    this.toolbar.className = 'webcam-toolbar module-toolbar';
 
+    // Region filter tabs
     const regionGroup = document.createElement('div');
-    regionGroup.className = 'webcam-toolbar-group';
+    regionGroup.className = 'webcam-toolbar-group module-tabs';
+    regionGroup.setAttribute('role', 'tablist');
+    regionGroup.setAttribute('aria-label', t('components.webcams.regionFilterAria') || 'Region filter');
 
     const regions: { key: RegionFilter; label: string }[] = [
       { key: 'all', label: t('components.webcams.regions.all') },
@@ -231,28 +234,31 @@ export class LiveWebcamsPanel extends Panel {
 
     regions.forEach(({ key, label }) => {
       const btn = document.createElement('button');
-      btn.className = `webcam-region-btn${key === this.regionFilter ? ' active' : ''}`;
+      btn.className = `webcam-region-btn module-tab${key === this.regionFilter ? ' active' : ''}`;
       btn.dataset.region = key;
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', key === this.regionFilter ? 'true' : 'false');
       btn.textContent = label;
       btn.addEventListener('click', () => this.setRegionFilter(key));
       regionGroup.appendChild(btn);
     });
 
+    // View mode toggle
     const viewGroup = document.createElement('div');
-    viewGroup.className = 'webcam-toolbar-group';
+    viewGroup.className = 'webcam-toolbar-group module-toolbar-actions';
 
     const gridBtn = document.createElement('button');
-    gridBtn.className = `webcam-view-btn${this.viewMode === 'grid' ? ' active' : ''}`;
+    gridBtn.className = `webcam-view-btn module-toolbar-action${this.viewMode === 'grid' ? ' active' : ''}`;
     gridBtn.dataset.mode = 'grid';
-    setTrustedHtml(gridBtn, trustedHtml('<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>', "legacy direct innerHTML migration"));
     gridBtn.title = 'Grid view';
+    setTrustedHtml(gridBtn, trustedHtml('<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>', "legacy direct innerHTML migration"));
     gridBtn.addEventListener('click', () => this.setViewMode('grid'));
 
     const singleBtn = document.createElement('button');
-    singleBtn.className = `webcam-view-btn${this.viewMode === 'single' ? ' active' : ''}`;
+    singleBtn.className = `webcam-view-btn module-toolbar-action${this.viewMode === 'single' ? ' active' : ''}`;
     singleBtn.dataset.mode = 'single';
-    setTrustedHtml(singleBtn, trustedHtml('<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="3" width="18" height="14" rx="2"/><rect x="3" y="19" width="18" height="2" rx="1"/></svg>', "legacy direct innerHTML migration"));
     singleBtn.title = 'Single view';
+    setTrustedHtml(singleBtn, trustedHtml('<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="3" width="18" height="14" rx="2"/><rect x="3" y="19" width="18" height="2" rx="1"/></svg>', "legacy direct innerHTML migration"));
     singleBtn.addEventListener('click', () => this.setViewMode('single'));
 
     // On mobile we force single view and hide/disable the grid toggle.
@@ -488,25 +494,27 @@ export class LiveWebcamsPanel extends Panel {
     preview.className = 'webcam-preview-tile';
     preview.dataset.feedId = feed.id;
 
-    const status = document.createElement('div');
-    status.className = 'webcam-preview-status';
-    const dot = document.createElement('span');
-    dot.className = 'webcam-live-dot';
-    const statusText = document.createElement('span');
-    statusText.textContent = t('components.webcams.previewStatus') || 'Live preview';
-    status.append(dot, statusText);
-
     const title = document.createElement('div');
-    title.className = 'webcam-preview-title';
+    title.className = 'webcam-preview-title module-status-label';
     title.textContent = feed.city;
 
     const meta = document.createElement('div');
-    meta.className = 'webcam-preview-meta';
+    meta.className = 'webcam-preview-meta module-meta-value';
     meta.textContent = `${feed.country} · ${feed.region.replace('-', ' ')}`;
+
+    const statusRow = document.createElement('div');
+    statusRow.className = 'webcam-preview-status-row module-status-row';
+    const dot = document.createElement('span');
+    dot.className = 'webcam-live-dot module-badge';
+    dot.setAttribute('aria-hidden', 'true');
+    const statusText = document.createElement('span');
+    statusText.className = 'webcam-preview-status module-state-title';
+    statusText.textContent = t('components.webcams.previewStatus') || 'READY';
+    statusRow.append(dot, statusText);
 
     const playBtn = document.createElement('button');
     playBtn.type = 'button';
-    playBtn.className = 'offline-retry webcam-preview-play';
+    playBtn.className = 'webcam-preview-play module-toolbar-action';
     playBtn.textContent = t('components.webcams.play') || 'Play';
     // First play intent lights up everything (the wall + Live News), not just this tile.
     const playAll = () => {
@@ -521,7 +529,7 @@ export class LiveWebcamsPanel extends Panel {
     });
 
     preview.addEventListener('click', () => playAll());
-    preview.append(status, title, meta, playBtn);
+    preview.append(title, meta, statusRow, playBtn);
     container.appendChild(preview);
   }
 
@@ -706,12 +714,17 @@ export class LiveWebcamsPanel extends Panel {
       this.renderPreviewTile(wrapper, this.activeFeed, 'single');
     }
 
+    // Compact feed switcher using module-tabs style
     const switcher = document.createElement('div');
-    switcher.className = 'webcam-switcher';
+    switcher.className = 'webcam-switcher module-tabs';
+    switcher.setAttribute('role', 'tablist');
+    switcher.setAttribute('aria-label', t('components.webcams.feedSwitcherAria') || 'Feed switcher');
 
     if (!this.forceSingleView) {
       const backBtn = document.createElement('button');
-      backBtn.className = 'webcam-feed-btn webcam-back-btn';
+      backBtn.className = 'webcam-feed-btn webcam-back-btn module-tab';
+      backBtn.setAttribute('role', 'tab');
+      backBtn.setAttribute('aria-selected', 'false');
       setTrustedHtml(backBtn, trustedHtml('<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg> Grid', "legacy direct innerHTML migration"));
       backBtn.addEventListener('click', () => this.setViewMode('grid'));
       switcher.appendChild(backBtn);
@@ -719,7 +732,9 @@ export class LiveWebcamsPanel extends Panel {
 
     this.filteredFeeds.forEach(feed => {
       const btn = document.createElement('button');
-      btn.className = `webcam-feed-btn${feed.id === this.activeFeed.id ? ' active' : ''}`;
+      btn.className = `webcam-feed-btn module-tab${feed.id === this.activeFeed.id ? ' active' : ''}`;
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', feed.id === this.activeFeed.id ? 'true' : 'false');
       btn.textContent = feed.city;
       btn.addEventListener('click', () => {
         if (feed.id === this.activeFeed.id) return;

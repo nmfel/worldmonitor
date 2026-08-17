@@ -3599,7 +3599,7 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
   display: block;
 }
 
-/* Live Webcams Panel */
+/* Live Webcams Panel — Phase 1D-7 terminal redesign */
 .panel[data-panel="live-webcams"] .panel-content {
   padding: 0;
   flex: 1;
@@ -3612,58 +3612,94 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
   overflow: hidden !important;
 }
 
+/* Toolbar — module-toolbar style */
 .webcam-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
-  background: var(--darken-heavy);
-  border-bottom: 1px solid var(--border);
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--wm-card, #0f0f12);
+  border-bottom: 1px solid var(--wm-border, #1f1f22);
   flex-shrink: 0;
 }
 
 .webcam-toolbar-group {
   display: flex;
+  align-items: center;
   gap: 4px;
 }
 
-.webcam-region-btn,
-.webcam-view-btn {
-  padding: 4px 8px;
+/* Region tabs — module-tabs style */
+.webcam-toolbar-group.module-tabs {
+  gap: 2px;
+  background: var(--wm-muted, #18181b);
+  padding: 2px;
+  border-radius: 4px;
+  border: 1px solid var(--wm-border, #1f1f22);
+}
+
+.webcam-region-btn.module-tab {
+  padding: 4px 10px;
   background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
+  border: none;
+  border-radius: 3px;
+  color: var(--text-dim, #888);
   font-family: inherit;
-  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  font-size: calc(9px * var(--wm-panel-effective-scale, 1));
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   white-space: nowrap;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.webcam-region-btn.module-tab:hover {
+  color: var(--text, #fafafa);
+  background: var(--wm-card, #0f0f12);
+}
+
+.webcam-region-btn.module-tab.active {
+  color: var(--accent, #00d4ff);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+/* View mode actions — module-toolbar-action style */
+.webcam-toolbar-group.module-toolbar-actions {
+  gap: 4px;
+}
+
+.webcam-view-btn.module-toolbar-action {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  background: var(--wm-muted, #18181b);
+  border: 1px solid var(--wm-border, #1f1f22);
+  border-radius: 3px;
+  color: var(--text-dim, #888);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
-.webcam-region-btn:hover,
-.webcam-view-btn:hover {
-  border-color: var(--text-dim);
-  color: var(--text);
+.webcam-view-btn.module-toolbar-action:hover,
+.webcam-view-btn.module-toolbar-action:focus-visible {
+  color: var(--accent, #00d4ff);
+  border-color: var(--accent, #00d4ff);
+  background: var(--wm-card, #0f0f12);
 }
 
-.webcam-region-btn.active {
-  background: var(--red-strong);
-  border-color: var(--red-strong);
-  color: white;
+.webcam-view-btn.module-toolbar-action.active {
+  color: var(--semantic-normal, #44ff88);
+  border-color: var(--semantic-normal, #44ff88);
+  background: rgba(68, 255, 136, 0.1);
 }
 
-.webcam-view-btn.active {
-  background: var(--red-strong);
-  border-color: var(--red-strong);
-  color: white;
-}
-
+/* Grid — compact 2x2 with bounded cell height */
 .webcam-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3672,7 +3708,7 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
   flex: 1;
   min-height: 0;
   height: 0;
-  background: #000;
+  background: var(--wm-bg, #09090b);
   overflow: hidden;
 }
 
@@ -3680,110 +3716,138 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
   position: relative;
   overflow: hidden;
   cursor: pointer;
-  background: #000;
+  background: var(--wm-bg, #09090b);
   min-height: 0;
   height: 100%;
 }
 
+/* Preview tile — compact terminal card */
 .webcam-preview-tile {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: flex-end;
-  gap: 7px;
-  padding: 14px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 38%),
-    linear-gradient(135deg, rgba(220, 38, 38, 0.24), rgba(0, 0, 0, 0.88));
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--wm-border, #1f1f22);
+  border-radius: 4px;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.webcam-preview-tile:hover .webcam-preview-play {
-  border-color: var(--text);
+.webcam-preview-tile:hover {
+  background: var(--wm-muted, #18181b);
+  border-color: var(--wm-border-hover, #2a2a2e);
 }
 
 .webcam-preview-title {
-  color: #fff;
-  font-family: var(--font-mono);
-  font-size: calc(13px * var(--wm-panel-effective-scale, 1));
-  font-weight: 700;
-  letter-spacing: 0;
+  font-family: var(--font-mono, monospace);
+  font-size: calc(11px * var(--wm-panel-effective-scale, 1));
+  font-weight: 600;
+  color: var(--text, #fafafa);
+  letter-spacing: 0.3px;
   text-transform: uppercase;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .webcam-preview-meta {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  font-size: calc(9px * var(--wm-panel-effective-scale, 1));
+  color: var(--text-dim, #888);
   text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-.webcam-preview-play {
-  margin-top: 4px;
+/* Status row — module-status-row style */
+.webcam-preview-status-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
 }
 
-.webcam-cell:hover .webcam-cell-label {
-  opacity: 1;
+.webcam-live-dot.module-badge {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--semantic-normal, #44ff88);
+  flex-shrink: 0;
+  /* No pulse animation — steady indicator is more terminal-like */
 }
 
+.webcam-preview-status {
+  font-size: calc(8px * var(--wm-panel-effective-scale, 1));
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--semantic-normal, #44ff88);
+}
+
+/* Play button — module-toolbar-action style */
+.webcam-preview-play.module-toolbar-action {
+  margin-top: 6px;
+  padding: 4px 10px;
+  background: var(--wm-muted, #18181b);
+  border: 1px solid var(--wm-border, #1f1f22);
+  border-radius: 3px;
+  color: var(--text-dim, #888);
+  font-family: inherit;
+  font-size: calc(9px * var(--wm-panel-effective-scale, 1));
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  align-self: flex-start;
+}
+
+.webcam-preview-play.module-toolbar-action:hover,
+.webcam-preview-play.module-toolbar-action:focus-visible {
+  color: var(--semantic-normal, #44ff88);
+  border-color: var(--semantic-normal, #44ff88);
+  background: var(--wm-card, #0f0f12);
+}
+
+/* Playing cell label */
 .webcam-cell-label {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  padding: 6px 10px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+  padding: 4px 8px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
   display: flex;
   align-items: center;
   gap: 6px;
   z-index: 2;
-  opacity: 0.85;
-  transition: opacity 0.2s;
+  opacity: 0.9;
   pointer-events: none;
 }
 
-.webcam-expand-btn {
-  pointer-events: auto;
-  margin-left: auto;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-  color: #fff;
-  padding: 2px 4px;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
-  line-height: 1;
-}
-
-.webcam-cell:hover .webcam-expand-btn {
-  opacity: 0.7;
-}
-
-.webcam-expand-btn:hover {
-  opacity: 1 !important;
-  background: rgba(255, 255, 255, 0.15);
-}
-
 .webcam-city {
-  font-family: var(--font-mono);
-  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 1px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  font-family: var(--font-mono, monospace);
+  font-size: calc(9px * var(--wm-panel-effective-scale, 1));
+  font-weight: 600;
+  color: var(--text, #fafafa);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .webcam-live-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--red);
-  animation: live-blink 1.5s ease-in-out infinite;
+  background: var(--semantic-normal, #44ff88);
   flex-shrink: 0;
 }
 
+/* Iframe */
 .webcam-iframe {
   width: 100%;
   height: 100%;
@@ -3792,13 +3856,15 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
   pointer-events: auto;
 }
 
+/* Single view — 16:9 player */
 .webcam-single {
   position: relative;
   flex: 1;
-  background: #000;
+  background: var(--wm-bg, #09090b);
   aspect-ratio: 16 / 9;
 }
 
+/* Embed fallback */
 .webcam-embed-fallback {
   position: absolute;
   inset: 0;
@@ -3816,7 +3882,7 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
 
 .webcam-embed-fallback-text {
   color: var(--text);
-  font-size: calc(12px * var(--wm-panel-effective-scale, 1));
+  font-size: calc(11px * var(--wm-panel-effective-scale, 1));
   max-width: 280px;
 }
 
@@ -3831,58 +3897,73 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
   margin: 0;
 }
 
-.webcam-switcher {
+/* Switcher — module-tabs style */
+.webcam-switcher.module-tabs {
   display: flex;
-  gap: 4px;
-  padding: 6px 8px;
-  background: var(--darken-heavy);
-  border-top: 1px solid var(--border);
+  gap: 2px;
+  padding: 4px;
+  background: var(--wm-muted, #18181b);
+  border-top: 1px solid var(--wm-border, #1f1f22);
   flex-shrink: 0;
   flex-wrap: wrap;
+  border-radius: 0;
 }
 
-.webcam-feed-btn {
-  padding: 4px 8px;
+.webcam-feed-btn.module-tab,
+.webcam-back-btn.module-tab {
+  padding: 4px 10px;
   background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
+  border: none;
+  border-radius: 3px;
+  color: var(--text-dim, #888);
   font-family: inherit;
-  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  font-size: calc(9px * var(--wm-panel-effective-scale, 1));
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.webcam-feed-btn:hover {
-  border-color: var(--text-dim);
-  color: var(--text);
-}
-
-.webcam-feed-btn.active {
-  background: var(--red-strong);
-  border-color: var(--red-strong);
-  color: white;
-}
-
-.webcam-back-btn {
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  transition: color 0.15s ease, background 0.15s ease;
   display: flex;
   align-items: center;
   gap: 4px;
-  border-color: var(--text-dim);
+}
+
+.webcam-feed-btn.module-tab:hover,
+.webcam-back-btn.module-tab:hover {
+  color: var(--text, #fafafa);
+  background: var(--wm-card, #0f0f12);
+}
+
+.webcam-feed-btn.module-tab.active {
+  color: var(--accent, #00d4ff);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.webcam-back-btn.module-tab {
+  border: 1px solid var(--wm-border, #1f1f22);
   margin-inline-end: 4px;
 }
 
+/* Placeholder */
 .webcam-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
-  min-height: 200px;
+  min-height: 120px;
   color: var(--text-dim);
-  font-size: calc(12px * var(--wm-panel-effective-scale, 1));
+  font-size: calc(11px * var(--wm-panel-effective-scale, 1));
 }
 
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .webcam-live-dot {
+    animation: none;
+  }
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .webcam-grid {
     grid-template-columns: 1fr;
@@ -3893,8 +3974,19 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
     display: none;
   }
 
-  .webcam-view-btn {
+  .webcam-view-btn.module-toolbar-action[data-mode="grid"] {
     display: none;
+  }
+
+  .webcam-toolbar-group.module-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding: 2px 4px;
+  }
+
+  .webcam-region-btn.module-tab {
+    flex-shrink: 0;
+    padding: 4px 8px;
   }
 }
 
