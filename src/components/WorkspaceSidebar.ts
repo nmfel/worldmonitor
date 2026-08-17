@@ -6,10 +6,12 @@ import {
   type ModuleMeta,
 } from '@/config/module-registry';
 import { WorkspaceStore, type PanelPlacement, type Workspace } from '@/services/workspace-store';
+import { isWorkspaceModeEnabled } from '@/services/workspace-activation';
 
 export interface WorkspaceSidebarOptions {
   store: WorkspaceStore;
   variant: string;
+  version?: string;
   activate: (workspace: Workspace) => boolean;
   openSettings?: () => void;
   confirmDelete?: (workspace: Workspace) => Promise<boolean>;
@@ -104,6 +106,29 @@ export class WorkspaceSidebar {
       settings.addEventListener('click', this.options.openSettings);
       utility.appendChild(settings);
     }
+    const about = element('details', 'workspace-sidebar-about');
+    const aboutSummary = element('summary', 'workspace-sidebar-action', 'About / Legal');
+    const aboutBody = element('div', 'workspace-sidebar-about-body');
+    aboutBody.append(
+      element('span', '', `WorldMonitor${this.options.version ? ` v${this.options.version}` : ''}`),
+      element('span', '', 'Copyright © 2024–2026 Elie Habib'),
+      element('span', '', 'AGPL-3.0-only · No warranty'),
+    );
+    const sourceLink = element('a', '', 'Source code');
+    sourceLink.href = 'https://github.com/nmfel/worldmonitor';
+    sourceLink.target = '_blank';
+    sourceLink.rel = 'noopener noreferrer';
+    const licenseLink = element('a', '', 'License');
+    licenseLink.href = '/docs/license';
+    licenseLink.target = '_blank';
+    licenseLink.rel = 'noopener noreferrer';
+    const noticesLink = element('a', '', 'Source attribution');
+    noticesLink.href = '/docs/source-attribution';
+    noticesLink.target = '_blank';
+    noticesLink.rel = 'noopener noreferrer';
+    aboutBody.append(sourceLink, licenseLink, noticesLink);
+    about.append(aboutSummary, aboutBody);
+    utility.appendChild(about);
 
     this.root.append(product, workspaceSection, moduleSection, utility);
     this.buildLibrary();
@@ -297,7 +322,7 @@ export class WorkspaceSidebar {
     row.dataset.moduleId = module.id;
     const copy = element('div', 'workspace-library-module-copy');
     const title = element('div', 'workspace-library-module-title', module.title);
-    if (module.premium || module.proGated) title.appendChild(element('span', 'workspace-library-premium', 'PRO'));
+    if ((module.premium || module.proGated) && !isWorkspaceModeEnabled()) title.appendChild(element('span', 'workspace-library-premium', 'PRO'));
     copy.append(title, element('span', 'workspace-library-module-category', module.category));
     const action = element('button', `workspace-library-module-action${added ? ' added' : ''}`, added ? 'Remove' : 'Add');
     action.type = 'button';

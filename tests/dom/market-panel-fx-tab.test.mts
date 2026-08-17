@@ -90,4 +90,52 @@ describe('CommoditiesPanel EUR FX tab', () => {
     await mountWithFx([{ currency: 'JPY', rate: 171.2, change1d: 0.85 }]);
     expect(fxCell('JPY')?.textContent).not.toContain('%');
   });
+
+  it('applies shared primitives to commodities layout elements', async () => {
+    await mountWithFx([{ currency: 'JPY', rate: 171.2, change1d: 0.85 }]);
+    const item = panel.getElement().querySelector('.commodity-item');
+    expect(item?.classList.contains('module-status-row')).toBe(true);
+    expect(item?.querySelector('.commodity-name')?.classList.contains('module-status-label')).toBe(true);
+    expect(item?.querySelector('.commodity-price')?.classList.contains('module-status-value')).toBe(true);
+    expect(item?.querySelector('.commodity-change')?.classList.contains('module-delta')).toBe(true);
+  });
+});
+
+const { MarketPanel, HeatmapPanel } = await import('@/components/MarketPanel');
+
+describe('MarketPanel and HeatmapPanel shared primitives alignment', () => {
+  it('applies shared primitives to MarketPanel elements', async () => {
+    const marketPanel = new MarketPanel();
+    document.body.appendChild(marketPanel.getElement());
+    marketPanel.renderMarkets([{
+      symbol: 'AAPL',
+      display: 'AAPL',
+      name: 'Apple Inc.',
+      price: 150.5,
+      change: 2.3,
+      sparkline: [148, 150, 150.5],
+    }]);
+    await flush();
+
+    const item = marketPanel.getElement().querySelector('.market-item');
+    expect(item?.querySelector('.market-name')?.classList.contains('module-status-label')).toBe(true);
+    expect(item?.querySelector('.market-symbol')?.classList.contains('module-meta-value')).toBe(true);
+    expect(item?.querySelector('.market-price')?.classList.contains('module-status-value')).toBe(true);
+    expect(item?.querySelector('.market-change')?.classList.contains('module-delta')).toBe(true);
+    marketPanel.destroy();
+  });
+
+  it('applies shared primitives to HeatmapPanel elements', async () => {
+    const heatmapPanel = new HeatmapPanel();
+    document.body.appendChild(heatmapPanel.getElement());
+    heatmapPanel.renderHeatmap([
+      { symbol: 'TECH', name: 'Technology', change: 1.5 },
+    ]);
+    await flush();
+
+    const cell = heatmapPanel.getElement().querySelector('.heatmap-cell');
+    expect(cell?.querySelector('.sector-ticker')?.classList.contains('module-badge')).toBe(true);
+    expect(cell?.querySelector('.sector-change')?.classList.contains('module-delta')).toBe(true);
+    heatmapPanel.destroy();
+  });
 });

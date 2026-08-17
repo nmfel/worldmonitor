@@ -1,6 +1,7 @@
 import type { PanelTab, TabsState } from '@/services/tab-store';
 import { t } from '@/services/i18n';
 import { PanelGateReason } from '@/services/panel-gating';
+import { isWorkspaceModeEnabled } from '@/services/workspace-activation';
 import { lockSvg, upgradeSvg } from '@/components/gate-icons';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 import { billingAwareGateCopy, type GateCopy } from '@/components/ExportGateControl';
@@ -29,19 +30,20 @@ export interface TabAddLock {
  * Business, 25 → Enterprise.
  */
 export function tabCapGateCopy(reason: PanelGateReason, cap: number): GateCopy {
+  const isWorkspace = isWorkspaceModeEnabled();
   const billing = billingAwareGateCopy(reason);
   if (billing) return billing;
   if (reason === PanelGateReason.ANONYMOUS) {
     return {
       icon: lockSvg,
-      desc: t('components.tabCap.signedOutDesc', { cap: String(cap) }),
-      cta: t('premium.signIn'),
+      desc: isWorkspace ? 'Authentication required' : t('components.tabCap.signedOutDesc', { cap: String(cap) }),
+      cta: isWorkspace ? 'Sign In' : t('premium.signIn'),
     };
   }
   return {
     icon: upgradeSvg,
-    desc: t('components.tabCap.upgradeDesc', { cap: String(cap) }),
-    cta: t('components.tabCap.upgradeCta'),
+    desc: isWorkspace ? 'Subscription required for additional tabs.' : t('components.tabCap.upgradeDesc', { cap: String(cap) }),
+    cta: isWorkspace ? 'Subscription Required' : t('components.tabCap.upgradeCta'),
   };
 }
 

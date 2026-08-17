@@ -250,21 +250,21 @@ export class FxPanel extends Panel {
   private renderDegradedNotice(): SafeHtml {
     if (this.degraded.length === 0) return safeHtml``;
     const names = this.degraded.map((id) => t(`components.fx.source.${id}`)).join(', ');
-    return safeHtml`<div class="fx-degraded">${t('components.fx.degraded', { sources: names })}</div>`;
+    return safeHtml`<div class="fx-degraded module-state module-state-degraded"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${t('components.fx.degraded', { sources: names })}</strong></div></div>`;
   }
 
   private renderTabs(): SafeHtml {
     const tabs: SafeHtml[] = [];
     if (this.hasStress()) {
-      tabs.push(safeHtml`<button class="panel-tab ${this.tab === 'stress' ? 'active' : ''}" data-tab="stress">${t('components.fx.tabs.stress')}</button>`);
+      tabs.push(safeHtml`<button class="panel-tab module-tab ${this.tab === 'stress' ? 'active' : ''}" role="tab" aria-selected="${this.tab === 'stress'}" data-tab="stress">${t('components.fx.tabs.stress')}</button>`);
     }
     if (this.hasSpot()) {
-      tabs.push(safeHtml`<button class="panel-tab ${this.tab === 'spot' ? 'active' : ''}" data-tab="spot">${t('components.fx.tabs.spot')}</button>`);
+      tabs.push(safeHtml`<button class="panel-tab module-tab ${this.tab === 'spot' ? 'active' : ''}" role="tab" aria-selected="${this.tab === 'spot'}" data-tab="spot">${t('components.fx.tabs.spot')}</button>`);
     }
     if (this.hasRub()) {
-      tabs.push(safeHtml`<button class="panel-tab ${this.tab === 'rub' ? 'active' : ''}" data-tab="rub">${t('components.fx.tabs.rub')}</button>`);
+      tabs.push(safeHtml`<button class="panel-tab module-tab ${this.tab === 'rub' ? 'active' : ''}" role="tab" aria-selected="${this.tab === 'rub'}" data-tab="rub">${t('components.fx.tabs.rub')}</button>`);
     }
-    return safeHtml`<div class="panel-tabs">${joinSafeHtml(tabs)}</div>`;
+    return safeHtml`<div class="panel-tabs module-tabs" role="tablist" aria-label="FX rates views">${joinSafeHtml(tabs)}</div>`;
   }
 
   private renderStress(): SafeHtml {
@@ -273,7 +273,7 @@ export class FxPanel extends Panel {
       // has a usable drawdown; show the gap rather than dropping the row.
       const yoy = r.yoyChange === null
         ? safeHtml`<td class="fx-na">--</td>`
-        : safeHtml`<td class="${changeClass(r.yoyChange)}">${formatPct(r.yoyChange)}</td>`;
+        : safeHtml`<td class="module-delta ${changeClass(r.yoyChange)}">${formatPct(r.yoyChange)}</td>`;
 
       // #6199 asks for "peak/trough with dates". The rates carry the actual
       // magnitude — ARS 0.00117 -> 0.00069 is the collapse the percentage only
@@ -290,13 +290,13 @@ export class FxPanel extends Panel {
         : safeHtml`<td class="fx-na">--</td>`;
 
       return safeHtml`
-        <tr class="${r.stressed ? 'fx-stressed' : ''}">
+        <tr class="${r.stressed ? 'fx-stressed' : ''} module-status-row">
           <td class="fx-ccy">
             <span class="fx-ccy-code">${r.currency}</span>
             <span class="fx-ccy-country">${r.countryCode}</span>
           </td>
           ${yoy}
-          <td class="${changeClass(r.drawdown24m)}">${formatPct(r.drawdown24m)}</td>
+          <td class="module-delta ${changeClass(r.drawdown24m)}">${formatPct(r.drawdown24m)}</td>
           ${window}
         </tr>`;
     }));
@@ -315,8 +315,8 @@ export class FxPanel extends Panel {
     const stressedCount = this.stress.filter((r) => r.stressed).length;
 
     return safeHtml`
-      <div class="fx-scroll">
-        <table class="fx-table">
+      <div class="fx-scroll module-table-wrap">
+        <table class="fx-table module-table">
           <thead>
             <tr>
               <th class="fx-ccy">${t('components.fx.currency')}</th>
@@ -328,7 +328,7 @@ export class FxPanel extends Panel {
           <tbody>${rows}</tbody>
         </table>
       </div>
-      <div class="fx-footer">
+      <div class="fx-footer module-meta">
         ${t('components.fx.stressedCount', {
           stressed: stressedCount,
           total: this.stress.length,
@@ -353,9 +353,9 @@ export class FxPanel extends Panel {
         </tr>`));
 
       sections.push(safeHtml`
-        <div class="fx-section-title">${t('components.fx.usdBase')}</div>
-        <div class="fx-scroll">
-          <table class="fx-table">
+        <div class="fx-section-title module-section-title">${t('components.fx.usdBase')}</div>
+        <div class="fx-scroll module-table-wrap">
+          <table class="fx-table module-table">
             <thead>
               <tr>
                 <th class="fx-ccy">${t('components.fx.currency')}</th>
@@ -366,14 +366,14 @@ export class FxPanel extends Panel {
             <tbody>${rows}</tbody>
           </table>
         </div>
-        <div class="fx-footer">${t('components.fx.sourceYahoo')}</div>`);
+        <div class="fx-footer module-meta">${t('components.fx.sourceYahoo')}</div>`);
     }
 
     if (this.eur.length > 0) {
       const rows = joinSafeHtml(this.eur.map((r) => {
         const change = r.change1d === null
           ? safeHtml`<td class="fx-na">--</td>`
-          : safeHtml`<td class="${changeClass(r.change1d)}">${formatDelta(r.change1d)}</td>`;
+          : safeHtml`<td class="module-delta ${changeClass(r.change1d)}">${formatDelta(r.change1d)}</td>`;
         return safeHtml`
           <tr>
             <td class="fx-ccy"><span class="fx-ccy-code">EUR/${r.currency}</span></td>
@@ -383,9 +383,9 @@ export class FxPanel extends Panel {
       }));
 
       sections.push(safeHtml`
-        <div class="fx-section-title">${t('components.fx.eurBase')}</div>
-        <div class="fx-scroll">
-          <table class="fx-table">
+        <div class="fx-section-title module-section-title">${t('components.fx.eurBase')}</div>
+        <div class="fx-scroll module-table-wrap">
+          <table class="fx-table module-table">
             <thead>
               <tr>
                 <th class="fx-ccy">${t('components.fx.pair')}</th>
@@ -396,7 +396,7 @@ export class FxPanel extends Panel {
             <tbody>${rows}</tbody>
           </table>
         </div>
-        <div class="fx-footer">${t('components.fx.sourceEcb')}</div>`);
+        <div class="fx-footer module-meta">${t('components.fx.sourceEcb')}</div>`);
     }
 
     return joinSafeHtml(sections);
@@ -416,7 +416,7 @@ export class FxPanel extends Panel {
     const rows = joinSafeHtml(this.rub.map((r) => {
       const change = r.change1d === null
         ? safeHtml`<td class="fx-na">--</td>`
-        : safeHtml`<td class="${changeClass(r.change1d)}">${formatDelta(r.change1d)}</td>`;
+        : safeHtml`<td class="module-delta ${changeClass(r.change1d)}">${formatDelta(r.change1d)}</td>`;
       return safeHtml`
         <tr>
           <td class="fx-ccy"><span class="fx-ccy-code">${r.currency}</span></td>
@@ -426,9 +426,9 @@ export class FxPanel extends Panel {
     }));
 
     return safeHtml`
-      <div class="fx-section-title">${t('components.fx.rubBase')}</div>
-      <div class="fx-scroll">
-        <table class="fx-table">
+      <div class="fx-section-title module-section-title">${t('components.fx.rubBase')}</div>
+      <div class="fx-scroll module-table-wrap">
+        <table class="fx-table module-table">
           <thead>
             <tr>
               <th class="fx-ccy">${t('components.fx.currency')}</th>
@@ -439,6 +439,6 @@ export class FxPanel extends Panel {
           <tbody>${rows}</tbody>
         </table>
       </div>
-      <div class="fx-footer">${t('components.fx.sourceCbr')}</div>`;
+      <div class="fx-footer module-meta">${t('components.fx.sourceCbr')}</div>`;
   }
 }

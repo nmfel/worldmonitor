@@ -44,6 +44,7 @@ import {
 import { hasPremiumAccess } from '@/services/panel-gating';
 import { getSubscription, onSubscriptionChange, openBillingPortal, prereserveBillingPortalTab } from '@/services/billing';
 import { BusinessSeatsSection } from '@/components/BusinessSeatsSection';
+import { isWorkspaceModeEnabled } from '@/services/workspace-activation';
 import { deriveBillingUxState, getReactivationHref } from '@/services/billing-state';
 import { createApiKey, listApiKeys, revokeApiKey, type ApiKeyInfo } from '@/services/api-keys';
 import { listMcpClients, revokeMcpClient, fetchMcpQuota, type McpClientInfo, type McpQuota } from '@/services/mcp-clients';
@@ -754,6 +755,7 @@ export class UnifiedSettings {
       ...(showMcpClientsTab ? ['mcp-clients' as const] : []),
     ];
     this.activeTab = normalizeSettingsTab(this.activeTab, availableTabs);
+    const isWorkspace = isWorkspaceModeEnabled();
     const tabClass = (id: TabId) => `unified-settings-tab${this.activeTab === id ? ' active' : ''}`;
     const applicablePresets = this.getApplicableTheaterPresets();
 
@@ -769,8 +771,8 @@ export class UnifiedSettings {
           <button class="${tabClass('panels')}" tabindex="${this.activeTab === 'panels' ? 0 : -1}" data-tab="panels" role="tab" aria-selected="${this.activeTab === 'panels'}" id="us-tab-panels" aria-controls="us-tab-panel-panels">${t('header.tabPanels')}</button>
           <button class="${tabClass('sources')}" tabindex="${this.activeTab === 'sources' ? 0 : -1}" data-tab="sources" role="tab" aria-selected="${this.activeTab === 'sources'}" id="us-tab-sources" aria-controls="us-tab-panel-sources">${t('header.tabSources')}</button>
           ${showNotificationsTab ? `<button class="${tabClass('notifications')}" tabindex="${this.activeTab === 'notifications' ? 0 : -1}" data-tab="notifications" role="tab" aria-selected="${this.activeTab === 'notifications'}" id="us-tab-notifications" aria-controls="us-tab-panel-notifications">${t('header.tabNotifications')}</button>` : ''}
-          <button class="${tabClass('api-keys')}" tabindex="${this.activeTab === 'api-keys' ? 0 : -1}" data-tab="api-keys" role="tab" aria-selected="${this.activeTab === 'api-keys'}" id="us-tab-api-keys" aria-controls="us-tab-panel-api-keys">API Keys <span class="panel-pro-badge">PRO</span></button>
-          ${showMcpClientsTab ? `<button class="${tabClass('mcp-clients')}" tabindex="${this.activeTab === 'mcp-clients' ? 0 : -1}" data-tab="mcp-clients" role="tab" aria-selected="${this.activeTab === 'mcp-clients'}" id="us-tab-mcp-clients" aria-controls="us-tab-panel-mcp-clients">MCP Clients <span class="panel-pro-badge">PRO</span></button>` : ''}
+          <button class="${tabClass('api-keys')}" tabindex="${this.activeTab === 'api-keys' ? 0 : -1}" data-tab="api-keys" role="tab" aria-selected="${this.activeTab === 'api-keys'}" id="us-tab-api-keys" aria-controls="us-tab-panel-api-keys">API Keys${isWorkspace ? '' : ' <span class="panel-pro-badge">PRO</span>'}</button>
+          ${showMcpClientsTab ? `<button class="${tabClass('mcp-clients')}" tabindex="${this.activeTab === 'mcp-clients' ? 0 : -1}" data-tab="mcp-clients" role="tab" aria-selected="${this.activeTab === 'mcp-clients'}" id="us-tab-mcp-clients" aria-controls="us-tab-panel-mcp-clients">MCP Clients${isWorkspace ? '' : ' <span class="panel-pro-badge">PRO</span>'}</button>` : ''}
         </div>
         <div class="unified-settings-tab-panel${this.activeTab === 'settings' ? ' active' : ''}" data-panel-id="settings" id="us-tab-panel-settings" role="tabpanel" aria-labelledby="us-tab-settings">
           ${prefs.html}
@@ -1146,7 +1148,7 @@ export class UnifiedSettings {
           <button type="button" class="panel-toggle-item ${panel.enabled && !locked ? 'active' : ''}${changed ? ' changed' : ''}${locked ? ' pro-locked' : ''}" data-panel="${escapeHtml(key)}" ${a11yState.ariaPressed === null ? '' : `aria-pressed="${a11yState.ariaPressed}"`} ${a11yState.ariaLabel === null ? '' : `aria-label="${escapeHtml(a11yState.ariaLabel)}"`} ${locked ? 'data-pro-locked="1"' : ''}>
             <div class="panel-toggle-checkbox" aria-hidden="true">${panel.enabled && !locked ? '\u2713' : ''}${locked ? '\uD83D\uDD12' : ''}</div>
             <span class="panel-toggle-label">${escapeHtml(displayName)}</span>
-            ${(locked || resolvedPanel.premium) ? '<span class="panel-toggle-pro-badge" aria-hidden="true">PRO</span>' : ''}
+            ${(locked || resolvedPanel.premium) && !isWorkspaceModeEnabled() ? '<span class="panel-toggle-pro-badge" aria-hidden="true">PRO</span>' : ''}
           </button>
           ${supportsPanelFontScale ? `<label class="panel-font-scale-control">
             <span>${escapeHtml(panelFontScaleLabel)}</span>
@@ -1608,13 +1610,14 @@ export class UnifiedSettings {
 
   private renderApiKeysContent(): string {
     const authState = getAuthState();
+    const isWorkspace = isWorkspaceModeEnabled();
 
     if (!authState.user) {
       const lockIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>`;
       return `
         <div class="panel-locked-state">
           <div class="panel-locked-icon">${lockIcon}</div>
-          <div class="panel-locked-desc">Sign in to unlock API Keys</div>
+          <div class="panel-locked-desc">${isWorkspace ? 'Authentication required' : 'Sign in to unlock API Keys'}</div>
           <button class="panel-locked-cta api-keys-gate-btn">Sign In</button>
         </div>`;
     }
@@ -1624,8 +1627,8 @@ export class UnifiedSettings {
       return `
         <div class="panel-locked-state">
           <div class="panel-locked-icon">${upgradeIcon}</div>
-          <div class="panel-locked-desc">Create and manage API keys to access WorldMonitor data programmatically.</div>
-          <button class="panel-locked-cta api-keys-gate-btn">Upgrade to API Starter</button>
+          <div class="panel-locked-desc">${isWorkspace ? 'Subscription required for API access.' : 'Create and manage API keys to access WorldMonitor data programmatically.'}</div>
+          <button class="panel-locked-cta api-keys-gate-btn">${isWorkspace ? 'Subscription Required' : 'Upgrade to API Starter'}</button>
         </div>`;
     }
 
@@ -1816,13 +1819,14 @@ export class UnifiedSettings {
 
   private renderMcpClientsContent(): string {
     const authState = getAuthState();
+    const isWorkspace = isWorkspaceModeEnabled();
 
     if (!authState.user) {
       const lockIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>`;
       return `
         <div class="panel-locked-state">
           <div class="panel-locked-icon">${lockIcon}</div>
-          <div class="panel-locked-desc">Sign in to manage connected MCP clients</div>
+          <div class="panel-locked-desc">${isWorkspace ? 'Authentication required' : 'Sign in to manage connected MCP clients'}</div>
         </div>`;
     }
 
@@ -1834,7 +1838,7 @@ export class UnifiedSettings {
       return `
         <div class="panel-locked-state">
           <div class="panel-locked-icon">${upgradeIcon}</div>
-          <div class="panel-locked-desc">Connect Claude Desktop and other AI clients to your WorldMonitor account.</div>
+          <div class="panel-locked-desc">${isWorkspace ? 'Subscription required for MCP client management.' : 'Connect Claude Desktop and other AI clients to your WorldMonitor account.'}</div>
         </div>`;
     }
 

@@ -56,29 +56,31 @@ export class StrategicPosturePanel extends Panel {
     this.loadingStartTime = Date.now();
     this.setSafeContent(unsafeRawHtml(`
       <div class="posture-panel">
-        <div class="posture-loading">
+        <div class="posture-loading module-state module-state-loading">
+          <span class="module-state-indicator" aria-hidden="true"></span>
+          <div class="module-state-body">
+            <strong class="module-state-title">${t('components.strategicPosture.scanningTheaters')}</strong>
+            <div class="posture-loading-stages">
+              <div class="posture-stage active">
+                <span class="posture-stage-dot"></span>
+                <span>${t('components.strategicPosture.positions')}</span>
+              </div>
+              <div class="posture-stage pending">
+                <span class="posture-stage-dot"></span>
+                <span>${t('components.strategicPosture.navalVesselsLoading')}</span>
+              </div>
+              <div class="posture-stage pending">
+                <span class="posture-stage-dot"></span>
+                <span>${t('components.strategicPosture.theaterAnalysis')}</span>
+              </div>
+            </div>
+            <span class="posture-loading-tip module-state-message">${t('components.strategicPosture.connectingStreams')}</span>
+            <span class="posture-loading-elapsed module-state-detail">${t('components.strategicPosture.elapsed', { elapsed: '0' })}</span>
+          </div>
           <div class="posture-loading-radar">
             <div class="posture-radar-sweep"></div>
             <div class="posture-radar-dot"></div>
           </div>
-          <div class="posture-loading-title">${t('components.strategicPosture.scanningTheaters')}</div>
-          <div class="posture-loading-stages">
-            <div class="posture-stage active">
-              <span class="posture-stage-dot"></span>
-              <span>${t('components.strategicPosture.positions')}</span>
-            </div>
-            <div class="posture-stage pending">
-              <span class="posture-stage-dot"></span>
-              <span>${t('components.strategicPosture.navalVesselsLoading')}</span>
-            </div>
-            <div class="posture-stage pending">
-              <span class="posture-stage-dot"></span>
-              <span>${t('components.strategicPosture.theaterAnalysis')}</span>
-            </div>
-          </div>
-          <div class="posture-loading-tip">${t('components.strategicPosture.connectingStreams')}</div>
-          <div class="posture-loading-elapsed">${t('components.strategicPosture.elapsed', { elapsed: '0' })}</div>
-          <div class="posture-loading-note">${t('components.strategicPosture.initialLoadNote')}</div>
         </div>
       </div>
     `, 'legacy Panel.setContent() migration'));
@@ -321,23 +323,25 @@ export class StrategicPosturePanel extends Panel {
     this.stopLoadingTimer();
     this.setSafeContent(unsafeRawHtml(`
       <div class="posture-panel">
-        <div class="posture-no-data">
-          <div class="posture-no-data-icon pulse">📡</div>
-          <div class="posture-no-data-title">${t('components.strategicPosture.acquiringData')}</div>
-          <div class="posture-no-data-desc">
-            ${t('components.strategicPosture.acquiringDesc')}
+        <div class="posture-no-data module-state module-state-unavailable">
+          <span class="module-state-indicator" aria-hidden="true"></span>
+          <div class="module-state-body">
+            <strong class="module-state-title">${t('components.strategicPosture.acquiringData')}</strong>
+            <span class="module-state-message">${t('components.strategicPosture.acquiringDesc')}</span>
           </div>
-          <div class="posture-data-sources">
-            <div class="posture-source">
-              <span class="posture-source-icon connecting">✈️</span>
-              <span>${t('components.strategicPosture.openSkyAdsb')}</span>
+          <div class="module-state-action">
+            <div class="posture-data-sources">
+              <div class="posture-source">
+                <span class="posture-source-icon connecting">✈️</span>
+                <span>${t('components.strategicPosture.openSkyAdsb')}</span>
+              </div>
+              <div class="posture-source">
+                <span class="posture-source-icon waiting">🚢</span>
+                <span>${t('components.strategicPosture.aisVesselStream')}</span>
+              </div>
             </div>
-            <div class="posture-source">
-              <span class="posture-source-icon waiting">🚢</span>
-              <span>${t('components.strategicPosture.aisVesselStream')}</span>
-            </div>
+            <button class="posture-retry-btn" data-panel-retry>↻ ${t('components.strategicPosture.retryNow')}</button>
           </div>
-          <button class="posture-retry-btn" data-panel-retry>↻ ${t('components.strategicPosture.retryNow')}</button>
         </div>
       </div>
     `, 'legacy Panel.setContent() migration'));
@@ -348,16 +352,16 @@ export class StrategicPosturePanel extends Panel {
     this.stopLoadingTimer();
     this.setSafeContent(unsafeRawHtml(`
       <div class="posture-panel">
-        <div class="posture-no-data">
-          <div class="posture-no-data-icon">⚠️</div>
-          <div class="posture-no-data-title">${t('components.strategicPosture.feedRateLimited')}</div>
-          <div class="posture-no-data-desc">
-            ${t('components.strategicPosture.rateLimitedDesc')}
+        <div class="posture-no-data module-state module-state-degraded">
+          <span class="module-state-indicator" aria-hidden="true"></span>
+          <div class="module-state-body">
+            <strong class="module-state-title">${t('components.strategicPosture.feedRateLimited')}</strong>
+            <span class="module-state-message">${t('components.strategicPosture.rateLimitedDesc')}</span>
+            <span class="posture-error-hint module-state-detail">${t('components.strategicPosture.rateLimitedTip')}</span>
           </div>
-          <div class="posture-error-hint">
-            <strong>${t('components.strategicPosture.rateLimitedTip')}</strong>
+          <div class="module-state-action">
+            <button class="posture-retry-btn" data-panel-retry>↻ ${t('components.strategicPosture.tryAgain')}</button>
           </div>
-          <button class="posture-retry-btn" data-panel-retry>↻ ${t('components.strategicPosture.tryAgain')}</button>
         </div>
       </div>
     `, 'legacy Panel.setContent() migration'));
@@ -367,22 +371,22 @@ export class StrategicPosturePanel extends Panel {
   private getPostureBadge(level: string): string {
     switch (level) {
       case 'critical':
-        return `<span class="posture-badge posture-critical">${t('components.strategicPosture.badges.critical')}</span>`;
+        return `<span class="posture-badge module-severity posture-critical">${t('components.strategicPosture.badges.critical')}</span>`;
       case 'elevated':
-        return `<span class="posture-badge posture-elevated">${t('components.strategicPosture.badges.elevated')}</span>`;
+        return `<span class="posture-badge module-severity posture-elevated">${t('components.strategicPosture.badges.elevated')}</span>`;
       default:
-        return `<span class="posture-badge posture-normal">${t('components.strategicPosture.badges.normal')}</span>`;
+        return `<span class="posture-badge module-severity posture-normal">${t('components.strategicPosture.badges.normal')}</span>`;
     }
   }
 
   private getTrendIcon(trend: string, change: number): string {
     switch (trend) {
       case 'increasing':
-        return `<span class="posture-trend trend-up">↗ +${change}%</span>`;
+        return `<span class="posture-trend module-delta trend-up">↗ +${change}%</span>`;
       case 'decreasing':
-        return `<span class="posture-trend trend-down">↘ ${change}%</span>`;
+        return `<span class="posture-trend module-delta trend-down">↘ ${change}%</span>`;
       default:
-        return `<span class="posture-trend trend-stable">→ ${t('components.strategicPosture.trendStable')}</span>`;
+        return `<span class="posture-trend module-delta trend-stable">→ ${t('components.strategicPosture.trendStable')}</span>`;
     }
   }
 
@@ -399,8 +403,8 @@ export class StrategicPosturePanel extends Panel {
     if (!isExpanded) {
       // Compact single-line view for normal theaters
       const chips: string[] = [];
-      if (p.totalAircraft > 0) chips.push(`<span class="posture-chip air">✈️ ${p.totalAircraft}</span>`);
-      if (p.totalVessels > 0) chips.push(`<span class="posture-chip naval">⚓ ${p.totalVessels}</span>`);
+      if (p.totalAircraft > 0) chips.push(`<span class="posture-chip module-badge air">✈️ ${p.totalAircraft}</span>`);
+      if (p.totalVessels > 0) chips.push(`<span class="posture-chip module-badge naval">⚓ ${p.totalVessels}</span>`);
 
       return `
         <div class="posture-theater posture-compact" data-lat="${p.centerLat}" data-lon="${p.centerLon}" title="${t('components.strategicPosture.clickToView', { name: escapeHtml(displayName) })}">
@@ -413,28 +417,28 @@ export class StrategicPosturePanel extends Panel {
 
     // Build compact stat chips for expanded view
     const airChips: string[] = [];
-    if (p.fighters > 0) airChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.fighters')}">✈️ ${p.fighters}</span>`);
-    if (p.tankers > 0) airChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.tankers')}">⛽ ${p.tankers}</span>`);
-    if (p.awacs > 0) airChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.awacs')}">📡 ${p.awacs}</span>`);
-    if (p.reconnaissance > 0) airChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.recon')}">🔍 ${p.reconnaissance}</span>`);
-    if (p.transport > 0) airChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.transport')}">📦 ${p.transport}</span>`);
-    if (p.bombers > 0) airChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.bombers')}">💣 ${p.bombers}</span>`);
-    if (p.drones > 0) airChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.drones')}">🛸 ${p.drones}</span>`);
+    if (p.fighters > 0) airChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.fighters')}">✈️ ${p.fighters}</span>`);
+    if (p.tankers > 0) airChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.tankers')}">⛽ ${p.tankers}</span>`);
+    if (p.awacs > 0) airChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.awacs')}">📡 ${p.awacs}</span>`);
+    if (p.reconnaissance > 0) airChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.recon')}">🔍 ${p.reconnaissance}</span>`);
+    if (p.transport > 0) airChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.transport')}">📦 ${p.transport}</span>`);
+    if (p.bombers > 0) airChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.bombers')}">💣 ${p.bombers}</span>`);
+    if (p.drones > 0) airChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.drones')}">🛸 ${p.drones}</span>`);
     // Fallback: show total aircraft if no typed breakdown available
     if (airChips.length === 0 && p.totalAircraft > 0) {
-      airChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.aircraft')}">✈️ ${p.totalAircraft}</span>`);
+      airChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.aircraft')}">✈️ ${p.totalAircraft}</span>`);
     }
 
     const navalChips: string[] = [];
-    if (p.carriers > 0) navalChips.push(`<span class="posture-stat carrier" title="${t('components.strategicPosture.units.carriers')}">🚢 ${p.carriers}</span>`);
-    if (p.destroyers > 0) navalChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.destroyers')}">⚓ ${p.destroyers}</span>`);
-    if (p.frigates > 0) navalChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.frigates')}">🛥️ ${p.frigates}</span>`);
-    if (p.submarines > 0) navalChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.submarines')}">🦈 ${p.submarines}</span>`);
-    if (p.patrol > 0) navalChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.patrol')}">🚤 ${p.patrol}</span>`);
-    if (p.auxiliaryVessels > 0) navalChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.auxiliary')}">⚓ ${p.auxiliaryVessels}</span>`);
+    if (p.carriers > 0) navalChips.push(`<span class="posture-stat module-badge carrier" title="${t('components.strategicPosture.units.carriers')}">🚢 ${p.carriers}</span>`);
+    if (p.destroyers > 0) navalChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.destroyers')}">⚓ ${p.destroyers}</span>`);
+    if (p.frigates > 0) navalChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.frigates')}">🛥️ ${p.frigates}</span>`);
+    if (p.submarines > 0) navalChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.submarines')}">🦈 ${p.submarines}</span>`);
+    if (p.patrol > 0) navalChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.patrol')}">🚤 ${p.patrol}</span>`);
+    if (p.auxiliaryVessels > 0) navalChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.auxiliary')}">⚓ ${p.auxiliaryVessels}</span>`);
     // Fallback: show total vessels if no typed breakdown available
     if (navalChips.length === 0 && p.totalVessels > 0) {
-      navalChips.push(`<span class="posture-stat" title="${t('components.strategicPosture.units.navalVessels')}">⚓ ${p.totalVessels}</span>`);
+      navalChips.push(`<span class="posture-stat module-badge" title="${t('components.strategicPosture.units.navalVessels')}">⚓ ${p.totalVessels}</span>`);
     }
 
     const hasAir = airChips.length > 0;
@@ -451,12 +455,13 @@ export class StrategicPosturePanel extends Panel {
           ${hasAir ? `<div class="posture-force-row"><span class="posture-domain">${t('components.strategicPosture.domains.air')}</span><div class="posture-stats">${airChips.join('')}</div></div>` : ''}
           ${hasNaval ? `<div class="posture-force-row"><span class="posture-domain">${t('components.strategicPosture.domains.sea')}</span><div class="posture-stats">${navalChips.join('')}</div></div>` : ''}
         </div>
+        ${p.summary ? `<p class="posture-summary">${escapeHtml(p.summary)}</p>` : ''}
 
-        <div class="posture-footer">
+        <div class="posture-footer posture-theater-footer">
           ${p.strikeCapable ? `<span class="posture-strike">⚡ ${t('components.strategicPosture.strike')}</span>` : ''}
           ${this.getTrendIcon(p.trend, p.changePercent)}
           ${p.targetNation ? `<span class="posture-focus">→ ${escapeHtml(p.targetNation)}</span>` : ''}
-          ${isDesktopRuntime() ? `<button class="posture-deduce-btn" title="Deduce Situation with AI" style="background: none; border: none; cursor: pointer; opacity: 0.7; font-size: 1.1em; transition: opacity 0.2s; margin-left: auto;" data-theater='${escapeHtml(JSON.stringify(p))}'>\u{1F9E0}</button>` : ''}
+          ${isDesktopRuntime() ? `<button class="posture-deduce-btn" title="Deduce Situation with AI" data-theater='${escapeHtml(JSON.stringify(p))}'>\u{1F9E0}</button>` : ''}
         </div>
       </div>
     `;
@@ -504,7 +509,7 @@ export class StrategicPosturePanel extends Panel {
 
         ${sorted.map((p) => this.renderTheater(p)).join('')}
 
-        <div class="posture-footer">
+        <div class="posture-footer posture-panel-footer module-meta">
           <span class="posture-updated">${this.isStale ? '⚠️ ' : ''}${t('components.strategicPosture.updated')} ${updatedTime}</span>
           <button class="posture-refresh-btn" title="${t('components.strategicPosture.refresh')}" aria-label="${t('components.strategicPosture.refresh')}">↻</button>
         </div>

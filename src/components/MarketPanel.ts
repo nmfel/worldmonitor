@@ -103,13 +103,13 @@ export class MarketPanel extends Panel {
         return `
       <div${attrs}>
         <div class="market-info">
-          <span class="market-name">${escapeHtml(stock.name)}</span>
-          <span class="market-symbol">${escapeHtml(stock.display)}</span>
+          <span class="market-name module-status-label">${escapeHtml(stock.name)}</span>
+          <span class="market-symbol module-meta-value">${escapeHtml(stock.display)}</span>
         </div>
         <div class="market-data">
           ${miniSparkline(stock.sparkline, stock.change)}
-          <span class="market-price">${formatPrice(stock.price!)}</span>
-          <span class="market-change ${getChangeClass(stock.change!)}">${formatChange(stock.change!)}</span>
+          <span class="market-price module-status-value">${formatPrice(stock.price!)}</span>
+          <span class="market-change module-delta ${getChangeClass(stock.change!)}">${formatChange(stock.change!)}</span>
         </div>
       </div>
     `;
@@ -211,9 +211,9 @@ export class HeatmapPanel extends Panel {
   private _buildTabBar(): string {
     const hasValuations = Object.keys(this._valuations).length > 0;
     if (!hasValuations) return '';
-    return `<div style="display:flex;gap:4px;margin-bottom:8px">
-      <button class="panel-tab${this._tab === 'performance' ? ' active' : ''}" data-tab="performance" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">Performance</button>
-      <button class="panel-tab${this._tab === 'valuations' ? ' active' : ''}" data-tab="valuations" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">Valuations</button>
+    return `<div class="module-tabs" role="tablist" aria-label="Sector Tabs" style="display:flex;gap:4px;margin-bottom:8px">
+      <button class="panel-tab module-tab${this._tab === 'performance' ? ' active' : ''}" role="tab" aria-selected="${this._tab === 'performance'}" data-tab="performance" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">Performance</button>
+      <button class="panel-tab module-tab${this._tab === 'valuations' ? ' active' : ''}" role="tab" aria-selected="${this._tab === 'valuations'}" data-tab="valuations" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">Valuations</button>
     </div>`;
   }
 
@@ -241,12 +241,12 @@ export class HeatmapPanel extends Panel {
         .map((sector) => {
           const change = sector.change ?? 0;
           const tickerHtml = sector.symbol
-            ? `<div class="sector-ticker">${escapeHtml(sector.symbol)}</div>`
+            ? `<div class="sector-ticker module-badge">${escapeHtml(sector.symbol)}</div>`
             : '';
           return `
         <div class="heatmap-cell ${getHeatmapClass(change)}">
           ${tickerHtml}
-          <div class="sector-change ${getChangeClass(change)}">${formatChange(change)}</div>
+          <div class="sector-change module-delta ${getChangeClass(change)}">${formatChange(change)}</div>
           <div class="sector-name">${escapeHtml(sector.name)}</div>
         </div>
       `;
@@ -288,7 +288,7 @@ export class HeatmapPanel extends Panel {
       .filter((e) => e.forwardPE !== null || e.trailingPE !== null);
 
     if (entries.length === 0) {
-      return '<div style="padding:8px;color:var(--text-dim);font-size:calc(12px * var(--wm-panel-effective-scale, 1))">No valuation data available</div>';
+      return '<div class="module-state module-state-empty"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">No valuation data available</strong></div></div>';
     }
 
     const sorted = [...entries].sort((a, b) => (a.forwardPE ?? a.trailingPE ?? 999) - (b.forwardPE ?? b.trailingPE ?? 999));
@@ -348,14 +348,14 @@ export class HeatmapPanel extends Panel {
       })
       .join('');
 
-    const table = `<div style="overflow-x:auto">
-<table style="width:100%;border-collapse:collapse;font-size:calc(11px * var(--wm-panel-effective-scale, 1))">
+    const table = `<div class="module-table-wrap" style="overflow-x:auto">
+<table class="module-table" aria-label="Sector valuations" style="width:100%;border-collapse:collapse;font-size:calc(11px * var(--wm-panel-effective-scale, 1))">
   <thead><tr style="color:var(--text-dim);border-bottom:1px solid var(--border)">
-    <th style="padding:3px 6px;text-align:left;font-weight:500">Sector</th>
-    <th style="padding:3px 6px;text-align:right;font-weight:500">Trail P/E</th>
-    <th style="padding:3px 6px;text-align:right;font-weight:500">Fwd P/E</th>
-    <th style="padding:3px 6px;text-align:right;font-weight:500">Beta</th>
-    <th style="padding:3px 6px;text-align:right;font-weight:500">YTD</th>
+    <th scope="col" style="padding:3px 6px;text-align:left;font-weight:500">Sector</th>
+    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">Trail P/E</th>
+    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">Fwd P/E</th>
+    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">Beta</th>
+    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">YTD</th>
   </tr></thead>
   <tbody>${tableRows}</tbody>
 </table></div>`;
@@ -531,16 +531,16 @@ export class CommoditiesPanel extends Panel {
   private _buildTabBar(hasFx: boolean, hasXau: boolean): string {
     const firstTabLabel = 'Commodities';
     const tabs: string[] = [
-      `<button class="panel-tab${this._tab === 'commodities' ? ' active' : ''}" data-tab="commodities" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">${firstTabLabel}</button>`,
+      `<button class="panel-tab module-tab${this._tab === 'commodities' ? ' active' : ''}" role="tab" aria-selected="${this._tab === 'commodities'}" data-tab="commodities" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">${firstTabLabel}</button>`,
     ];
-    if (hasFx) tabs.push(`<button class="panel-tab${this._tab === 'fx' ? ' active' : ''}" data-tab="fx" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">EUR FX</button>`);
-    if (hasXau) tabs.push(`<button class="panel-tab${this._tab === 'xau' ? ' active' : ''}" data-tab="xau" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">XAU/FX</button>`);
-    return tabs.length > 1 ? `<div style="display:flex;gap:4px;margin-bottom:8px">${tabs.join('')}</div>` : '';
+    if (hasFx) tabs.push(`<button class="panel-tab module-tab${this._tab === 'fx' ? ' active' : ''}" role="tab" aria-selected="${this._tab === 'fx'}" data-tab="fx" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">EUR FX</button>`);
+    if (hasXau) tabs.push(`<button class="panel-tab module-tab${this._tab === 'xau' ? ' active' : ''}" role="tab" aria-selected="${this._tab === 'xau'}" data-tab="xau" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">XAU/FX</button>`);
+    return tabs.length > 1 ? `<div class="module-tabs" role="tablist" aria-label="Commodity tabs" style="display:flex;gap:4px;margin-bottom:8px">${tabs.join('')}</div>` : '';
   }
 
   private _renderXau(): string {
     const gcf = this._commodityData.find(d => d.symbol === 'GC=F' && d.price !== null);
-    if (!gcf?.price) return `<div style="padding:8px;color:var(--text-dim);font-size:calc(12px * var(--wm-panel-effective-scale, 1))">Gold price unavailable</div>`;
+    if (!gcf?.price) return '<div class="module-state module-state-unavailable"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">Gold price unavailable</strong></div></div>';
 
     const goldUsd = gcf.price;
     const fxMap = new Map(this._commodityData.filter(d => d.symbol?.endsWith('=X')).map(d => [d.symbol!, d]));
@@ -551,17 +551,17 @@ export class CommoditiesPanel extends Panel {
       const xauPrice = cfg.multiply ? goldUsd * fx.price : goldUsd / fx.price;
       if (!Number.isFinite(xauPrice) || xauPrice <= 0) return null;
       const formatted = Math.round(xauPrice).toLocaleString();
-      return `<div class="commodity-item">
-        <div class="commodity-name">${escapeHtml(cfg.flag)} XAU/${escapeHtml(cfg.label)}</div>
-        <div class="commodity-price" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1))">${escapeHtml(formatted)}</div>
+      return `<div class="commodity-item module-status-row">
+        <div class="commodity-name module-status-label">${escapeHtml(cfg.flag)} XAU/${escapeHtml(cfg.label)}</div>
+        <div class="commodity-price module-status-value" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1))">${escapeHtml(formatted)}</div>
       </div>`;
     }).filter(Boolean);
 
     if (rows.length === 0) {
       const placeholders = XAU_CURRENCY_CONFIG.map(cfg =>
-        `<div class="commodity-item">
-          <div class="commodity-name">${escapeHtml(cfg.flag)} XAU/${escapeHtml(cfg.label)}</div>
-          <div class="commodity-price" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1))">--</div>
+        `<div class="commodity-item module-status-row">
+          <div class="commodity-name module-status-label">${escapeHtml(cfg.flag)} XAU/${escapeHtml(cfg.label)}</div>
+          <div class="commodity-price module-status-value" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1))">--</div>
         </div>`
       ).join('');
       return `<div class="commodities-grid">${placeholders}</div><div style="margin-top:6px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">FX rates unavailable</div>`;
@@ -585,10 +585,10 @@ export class CommoditiesPanel extends Panel {
         // same seeded field and must not disagree about it.
         const changeStr = change !== null ? `${change > 0 ? '+' : ''}${change.toFixed(4)}` : '';
         const changeClass = change === null || change === 0 ? '' : change > 0 ? 'change-positive' : 'change-negative';
-        return `<div class="commodity-item">
-          <div class="commodity-name">EUR/${escapeHtml(r.currency)}</div>
-          <div class="commodity-price">${escapeHtml(r.rate.toFixed(4))}</div>
-          ${changeStr ? `<div class="commodity-change ${escapeHtml(changeClass)}">${escapeHtml(changeStr)}</div>` : ''}
+        return `<div class="commodity-item module-status-row">
+          <div class="commodity-name module-status-label">EUR/${escapeHtml(r.currency)}</div>
+          <div class="commodity-price module-status-value">${escapeHtml(r.rate.toFixed(4))}</div>
+          ${changeStr ? `<div class="commodity-change module-delta ${escapeHtml(changeClass)}">${escapeHtml(changeStr)}</div>` : ''}
         </div>`;
       }).join('');
       this.setSafeContent(unsafeRawHtml(tabBar + `<div class="commodities-grid">${items}</div><div style="margin-top:6px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">Source: ECB</div>`, 'legacy Panel.setContent() migration'));
@@ -613,17 +613,17 @@ export class CommoditiesPanel extends Panel {
         this.showRetrying(t('common.failedCommodities'));
         return;
       }
-      this.setSafeContent(unsafeRawHtml(tabBar + `<div style="padding:8px;color:var(--text-dim);font-size:calc(12px * var(--wm-panel-effective-scale, 1))">${t('common.failedCommodities')}</div>`, 'legacy Panel.setContent() migration'));
+      this.setSafeContent(unsafeRawHtml(tabBar + `<div class="module-state module-state-unavailable"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${t('common.failedCommodities')}</strong></div></div>`, 'legacy Panel.setContent() migration'));
       return;
     }
 
     const grid = '<div class="commodities-grid">' +
       validData.map(c => `
-        <div class="commodity-item">
-          <div class="commodity-name">${escapeHtml(c.display)}</div>
+        <div class="commodity-item module-status-row">
+          <div class="commodity-name module-status-label">${escapeHtml(c.display)}</div>
           ${miniSparkline(c.sparkline, c.change, 60, 18)}
-          <div class="commodity-price">${formatPrice(c.price!)}</div>
-          <div class="commodity-change ${getChangeClass(c.change!)}">${formatChange(c.change!)}</div>
+          <div class="commodity-price module-status-value">${formatPrice(c.price!)}</div>
+          <div class="commodity-change module-delta ${getChangeClass(c.change!)}">${formatChange(c.change!)}</div>
         </div>
       `).join('') + '</div>';
 
@@ -645,15 +645,15 @@ export class CryptoPanel extends Panel {
     const html = data
       .map(
         (coin) => `
-      <div class="market-item">
+      <div class="market-item module-status-row">
         <div class="market-info">
-          <span class="market-name">${escapeHtml(coin.name)}</span>
-          <span class="market-symbol">${escapeHtml(coin.symbol)}</span>
+          <span class="market-name module-status-label">${escapeHtml(coin.name)}</span>
+          <span class="market-symbol module-meta-value">${escapeHtml(coin.symbol)}</span>
         </div>
         <div class="market-data">
           ${miniSparkline(coin.sparkline, coin.change)}
-          <span class="market-price">$${coin.price.toLocaleString()}</span>
-          <span class="market-change ${getChangeClass(coin.change)}">${formatChange(coin.change)}</span>
+          <span class="market-price module-status-value">$${coin.price.toLocaleString()}</span>
+          <span class="market-change module-delta ${getChangeClass(coin.change)}">${formatChange(coin.change)}</span>
         </div>
       </div>
     `
@@ -683,7 +683,7 @@ export class CryptoHeatmapPanel extends Panel {
           return `
         <div class="heatmap-cell ${getHeatmapClass(change)}">
           <div class="sector-name">${escapeHtml(sector.name)}</div>
-          <div class="sector-change ${getChangeClass(change)}">${formatChange(change)}</div>
+          <div class="sector-change module-delta ${getChangeClass(change)}">${formatChange(change)}</div>
         </div>
       `;
         })
@@ -704,15 +704,15 @@ export class TokenListPanel extends Panel {
     const rows = data
       .map(
         (tok) => `
-      <div class="market-item">
+      <div class="market-item module-status-row">
         <div class="market-info">
-          <span class="market-name">${escapeHtml(tok.name)}</span>
-          <span class="market-symbol">${escapeHtml(tok.symbol)}</span>
+          <span class="market-name module-status-label">${escapeHtml(tok.name)}</span>
+          <span class="market-symbol module-meta-value">${escapeHtml(tok.symbol)}</span>
         </div>
         <div class="market-data">
-          <span class="market-price">$${tok.price.toLocaleString(undefined, { maximumFractionDigits: tok.price < 1 ? 6 : 2 })}</span>
-          <span class="market-change ${getChangeClass(tok.change24h)}">${formatChange(tok.change24h)}</span>
-          <span class="market-change market-change--7d ${getChangeClass(tok.change7d)}">${formatChange(tok.change7d)}W</span>
+          <span class="market-price module-status-value">$${tok.price.toLocaleString(undefined, { maximumFractionDigits: tok.price < 1 ? 6 : 2 })}</span>
+          <span class="market-change module-delta ${getChangeClass(tok.change24h)}">${formatChange(tok.change24h)}</span>
+          <span class="market-change market-change--7d module-delta ${getChangeClass(tok.change7d)}">${formatChange(tok.change7d)}W</span>
         </div>
       </div>
     `

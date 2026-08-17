@@ -121,6 +121,21 @@ describe('WorkspaceSidebar UI', () => {
     assert.equal(select?.textContent, 'Default Workspace');
   });
 
+  it('keeps legal, license, source, and version access in workspace shell', () => {
+    const sidebar = new WorkspaceSidebar({
+      store,
+      variant: 'full',
+      version: '2.10.0',
+      activate: () => true,
+    });
+    const about = sidebar.getElement().querySelector('.workspace-sidebar-about')!;
+    assert.match(about.textContent ?? '', /WorldMonitor v2\.10\.0/);
+    assert.match(about.textContent ?? '', /Copyright © 2024–2026 Elie Habib/);
+    assert.match(about.textContent ?? '', /AGPL-3\.0-only · No warranty/);
+    const linkLabels = [...about.querySelectorAll('a')].map((link) => link.textContent);
+    assert.deepEqual(linkLabels, ['Source code', 'License', 'Source attribution']);
+  });
+
   it('handles sidebar collapse and expand transitions', () => {
     const sidebar = new WorkspaceSidebar({
       store,

@@ -11,6 +11,7 @@ import { openExternalUrl } from '@/services/external-navigation';
 import { lockSvg, upgradeSvg } from '@/components/gate-icons';
 import { dataFreshness, type PanelFreshnessSummary } from '@/services/data-freshness';
 import { formatPanelFreshnessDisplay } from '@/services/panel-freshness-display';
+import { isWorkspaceModeEnabled } from '@/services/workspace-activation';
 import {
   clearPanelColSpan,
   clearPanelSpan,
@@ -259,7 +260,8 @@ export class Panel {
       headerLeft.appendChild(this.newBadgeEl);
     }
 
-    if (options.premium && !getSecretState('WORLDMONITOR_API_KEY').present) {
+    const isWorkspace = isWorkspaceModeEnabled();
+    if (options.premium && !isWorkspace && !getSecretState('WORLDMONITOR_API_KEY').present) {
       const proBadge = h('span', { className: 'panel-pro-badge' }, t('premium.pro'));
       headerLeft.appendChild(proBadge);
     }
@@ -981,9 +983,13 @@ export class Panel {
     const iconEl = h('div', { className: 'panel-locked-icon' });
     setTrustedHtml(iconEl, trustedHtml(lockSvg, 'legacy direct innerHTML migration'));
 
+    const isWorkspace = isWorkspaceModeEnabled();
+    const descText = isWorkspace ? 'Subscription required for this module.' : t('premium.lockedDesc');
+    const ctaText = isWorkspace ? 'Subscription Required' : 'Upgrade to Pro';
+
     const lockedChildren: (HTMLElement | string)[] = [
       iconEl,
-      h('div', { className: 'panel-locked-desc' }, t('premium.lockedDesc')),
+      h('div', { className: 'panel-locked-desc' }, descText),
     ];
 
     if (features.length > 0) {
@@ -994,7 +1000,7 @@ export class Panel {
       lockedChildren.push(featureList);
     }
 
-    const ctaBtn = h('button', { type: 'button', className: 'panel-locked-cta' }, 'Upgrade to Pro');
+    const ctaBtn = h('button', { type: 'button', className: 'panel-locked-cta' }, ctaText);
     if (isDesktopRuntime()) {
       ctaBtn.addEventListener('click', () => {
         void openExternalUrl('https://worldmonitor.app/pro');
@@ -1023,42 +1029,43 @@ export class Panel {
   private static gatedCtaEntry(
     reason: PanelGateReason,
   ): { icon: string; desc: string; cta: string } | null {
+    const isWorkspace = isWorkspaceModeEnabled();
     switch (reason) {
       case PanelGateReason.ANONYMOUS:
         return {
           icon: lockSvg,
-          desc: t('premium.signInToUnlock'),
-          cta: t('premium.signIn'),
+          desc: isWorkspace ? 'Authentication required' : t('premium.signInToUnlock'),
+          cta: isWorkspace ? 'Sign In' : t('premium.signIn'),
         };
       case PanelGateReason.FREE_TIER:
         return {
           icon: upgradeSvg,
-          desc: t('premium.upgradeDesc'),
-          cta: t('premium.upgradeToPro'),
+          desc: isWorkspace ? 'Subscription required' : t('premium.upgradeDesc'),
+          cta: isWorkspace ? 'Subscription Required' : t('premium.upgradeToPro'),
         };
       case PanelGateReason.PAYMENT_ON_HOLD:
         return {
           icon: lockSvg,
-          desc: t('components.billingState.onHoldDesc'),
+          desc: isWorkspace ? 'Account suspended' : t('components.billingState.onHoldDesc'),
           cta: t('components.billingState.updatePayment'),
         };
       case PanelGateReason.RENEWAL_PENDING:
         return {
           icon: lockSvg,
-          desc: t('components.billingState.renewalPendingDesc'),
+          desc: isWorkspace ? 'Verifying subscription' : t('components.billingState.renewalPendingDesc'),
           cta: t('components.billingState.refreshStatus'),
         };
       case PanelGateReason.RENEWAL_FAILED:
         return {
           icon: lockSvg,
-          desc: t('components.billingState.renewalFailedDesc'),
+          desc: isWorkspace ? 'Subscription expired' : t('components.billingState.renewalFailedDesc'),
           cta: t('components.billingState.manageBilling'),
         };
       case PanelGateReason.LAPSED:
         return {
           icon: upgradeSvg,
-          desc: t('components.billingState.lapsedDesc'),
-          cta: t('components.billingState.resubscribe'),
+          desc: isWorkspace ? 'Subscription expired' : t('components.billingState.lapsedDesc'),
+          cta: isWorkspace ? 'Subscription Required' : t('components.billingState.resubscribe'),
         };
       default:
         return null;

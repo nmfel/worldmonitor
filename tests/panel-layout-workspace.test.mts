@@ -40,10 +40,11 @@ describe('PanelLayoutManager workspace integration', () => {
     assert.match(source, /collapseButton && elementCollapsed !== targetCollapsed[\s\S]*?collapseButton\.click\(\)/);
   });
 
-  it('omits presentation-only commercial and community shell chrome', () => {
+  it('omits presentation-only commercial, community, and workspace footer shell chrome', () => {
     assert.doesNotMatch(source, /proBannerSlot|>Pricing<|>Blog<|>Discord<|>X<|discord\.gg\/re63kWKxaz|x\.com\/worldmonitorai/);
     assert.doesNotMatch(appSource, /showProBanner\(/);
     assert.doesNotMatch(dataLoaderSource, /mountCommunityWidget\(/);
+    assert.match(source, /\$\{workspaceModeEnabled \? '' : `/);
   });
 
   it('preserves service and legal shell links', () => {

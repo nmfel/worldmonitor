@@ -64,13 +64,13 @@ export function composeMarketPanelContent({
   }
   const unavailableHtml = hasMarkets
     ? ''
-    : `<div class="market-data-unavailable">${escapeHtml(unavailableMessage)}</div>`;
+    : `<div class="market-data-unavailable module-state module-state-unavailable"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${escapeHtml(unavailableMessage)}</strong></div></div>`;
   // Only rendered alongside real quotes: without them the retry state above
   // already tells the whole story, and repeating every symbol would bury it.
   const symbolNoticeHtml = hasMarkets && unavailableSymbolLines.length > 0
-    ? `<div class="market-symbols-unavailable">${unavailableSymbolLines
-        .map((line) => `<div>${escapeHtml(line)}</div>`)
-        .join('')}</div>`
+    ? `<div class="market-symbols-unavailable module-state module-state-degraded"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body">${unavailableSymbolLines
+        .map((line) => `<span class="module-state-message">${escapeHtml(line)}</span>`)
+        .join('')}</div></div>`
     : '';
   return {
     kind: 'content',

@@ -22,6 +22,7 @@ import {
   type AgentBusAction,
   type DashboardControlAction,
 } from '../../shared/agent-bus-actions';
+import { isWorkspaceModeEnabled } from '@/services/workspace-activation';
 
 const API_URL = '/api/chat-analyst';
 const MAX_HISTORY = 20;
@@ -156,9 +157,10 @@ export class ChatAnalystPanel extends Panel {
   private contentDelegationAttached = false;
 
   constructor() {
+    const isWorkspace = isWorkspaceModeEnabled();
     super({
       id: 'chat-analyst',
-      title: 'WM Analyst',
+      title: isWorkspace ? 'Analyst' : 'WM Analyst',
       premium: 'locked',
       defaultRowSpan: 2,
       infoTooltip: t('components.chatAnalyst.infoTooltip'),

@@ -4,13 +4,14 @@ import { isDesktopRuntime, getRemoteApiBaseUrl, getApiBaseUrl, getLocalApiPort }
 import { t } from '../services/i18n';
 import { loadFromStorage, saveToStorage } from '@/utils';
 import { IDLE_PAUSE_MS, STORAGE_KEYS, SITE_VARIANT } from '@/config';
-import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
+import { sanitizeUrl } from '@/utils/sanitize';
 
 import { getStreamQuality } from '@/services/ai-flow-settings';
 import { getActiveLiveMedia, playAllLiveMedia, registerLiveMediaStarter, releaseLiveMediaPlayback, requestLiveMediaPlayback, stopLiveMediaPlayback, unregisterLiveMediaStarter, type LiveMediaStopReason } from '@/services/live-media-controller';
 import { getLiveStreamsAlwaysOn, subscribeLiveStreamsSettingsChange } from '@/services/live-stream-settings';
 import { track } from '@/services/analytics';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
+import { moduleEventRow, moduleMeta, moduleState, moduleToolbar } from './panel-content-primitives';
 
 
 // YouTube IFrame Player API types
@@ -473,35 +474,37 @@ export class LiveNewsPanel extends Panel {
     this.deferredInit = false;
     this.playerContainer = null;
     this.playerElement = null;
-    setTrustedHtml(this.content, trustedHtml('', "legacy direct innerHTML migration"));
-    const container = document.createElement('div');
-    container.className = 'live-news-placeholder live-media-shell';
-
-    const status = document.createElement('div');
-    status.className = 'live-media-shell-status';
-    const dot = document.createElement('span');
-    dot.className = 'live-media-shell-dot';
-    const statusText = document.createElement('span');
-    statusText.textContent = t('components.liveNews.readyStatus') || 'Ready when you are';
-    status.append(dot, statusText);
-
-    const label = document.createElement('div');
-    label.className = 'live-media-shell-title';
-    label.textContent = this.getChannelDisplayName(this.activeChannel);
 
     const playBtn = document.createElement('button');
     playBtn.className = 'offline-retry';
     playBtn.textContent = t('components.liveNews.playLiveFeed') || 'Play live feed';
-    playBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
+    playBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
       playAllLiveMedia();
     });
 
-    container.appendChild(status);
-    container.appendChild(label);
-    container.appendChild(playBtn);
-    container.addEventListener('click', () => playAllLiveMedia());
-    this.content.appendChild(container);
+    const channelName = this.getChannelDisplayName(this.activeChannel);
+    const readyStatus = t('components.liveNews.readyStatus') || 'Ready when you are';
+    const playLiveFeed = t('components.liveNews.playLiveFeed') || 'Play live feed';
+    const sourceMeta = moduleMeta([
+      { value: channelName, kind: 'source' },
+      { value: readyStatus, kind: 'freshness' },
+    ]);
+    const sourceRow = moduleEventRow({
+      title: channelName,
+      summary: playLiveFeed,
+      severity: { label: readyStatus, tone: 'info' },
+    });
+    const standby = moduleState({
+      kind: 'empty',
+      title: readyStatus,
+      message: playLiveFeed,
+      action: playBtn,
+    });
+    const container = document.createElement('div');
+    container.className = 'live-news-placeholder live-media-shell';
+    container.append(sourceMeta, sourceRow, standby);
+    this.setContentNodes(container);
   }
 
   private setupLazyInit(): void {
@@ -917,9 +920,10 @@ export class LiveNewsPanel extends Panel {
   /** Creates a single channel tab button with click and drag handlers. */
   private createChannelButton(channel: LiveChannel): HTMLButtonElement {
     const btn = document.createElement('button');
-    btn.className = `live-channel-btn ${channel.id === this.activeChannel.id ? 'active' : ''}`;
+    btn.className = `live-channel-btn module-filter${channel.id === this.activeChannel.id ? ' active' : ''}`;
     btn.dataset.channelId = channel.id;
-
+    btn.type = 'button';
+    btn.setAttribute('aria-pressed', String(channel.id === this.activeChannel.id));
     btn.textContent = this.getChannelDisplayName(channel);
 
     btn.style.cursor = 'grab';
@@ -994,9 +998,9 @@ export class LiveNewsPanel extends Panel {
       dragStarted = false;
     });
 
-    const toolbar = document.createElement('div');
-    toolbar.className = 'live-news-toolbar';
-    toolbar.appendChild(this.channelSwitcher);
+    const toolbar = moduleToolbar([this.channelSwitcher]);
+    toolbar.classList.add('live-news-toolbar');
+    toolbar.setAttribute('aria-label', t('components.liveNews.availableChannels') || 'Available channels');
     this.createManageButton(toolbar);
     this.element.insertBefore(toolbar, this.content);
   }
@@ -1006,6 +1010,7 @@ export class LiveNewsPanel extends Panel {
     openBtn.type = 'button';
     openBtn.className = 'live-news-settings-btn';
     openBtn.title = t('components.liveNews.channelSettings') ?? 'Channel Settings';
+    openBtn.setAttribute('aria-label', openBtn.title);
     setTrustedHtml(openBtn, trustedHtml('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>', "legacy direct innerHTML migration"));
     openBtn.addEventListener('click', () => {
       this.openChannelManagementModal();
@@ -1125,8 +1130,10 @@ export class LiveNewsPanel extends Panel {
 
     this.channelSwitcher?.querySelectorAll('.live-channel-btn').forEach(btn => {
       const btnEl = btn as HTMLElement;
-      btnEl.classList.toggle('active', btnEl.dataset.channelId === channel.id);
-      if (shouldStartMedia && btnEl.dataset.channelId === channel.id) {
+      const isActive = btnEl.dataset.channelId === channel.id;
+      btnEl.classList.toggle('active', isActive);
+      btnEl.setAttribute('aria-pressed', String(isActive));
+      if (shouldStartMedia && isActive) {
         btnEl.classList.add('loading');
       }
     });
@@ -1166,16 +1173,44 @@ export class LiveNewsPanel extends Panel {
     this.requestPlaybackForActiveChannel();
   }
 
+  private async retryActiveChannel(): Promise<void> {
+    const channel = this.activeChannel;
+    this.deferredInit = true;
+    this.hlsFailureCooldown.delete(channel.id);
+    const activeButton = this.channelSwitcher?.querySelector<HTMLElement>('.live-channel-btn.active');
+    activeButton?.classList.remove('offline');
+    activeButton?.classList.add('loading');
+
+    await this.resolveChannelVideo(channel);
+    if (!this.element.isConnected || this.activeChannel.id !== channel.id) {
+      this.clearChannelLoadingState();
+      return;
+    }
+
+    activeButton?.classList.remove('loading');
+    if (!channel.videoId) activeButton?.classList.add('offline');
+    this.requestPlaybackForActiveChannel();
+  }
+
   private showOfflineMessage(channel: LiveChannel): void {
     this.destroyPlayer();
-    const safeName = escapeHtml(channel.name);
-    setTrustedHtml(this.content, trustedHtml(`
-      <div class="live-offline live-offline-compact">
-        <div class="offline-icon">📺</div>
-        <div class="offline-text">${t('components.liveNews.notLive', { name: safeName })}</div>
-        <button class="offline-retry" onclick="this.closest('.panel').querySelector('.live-channel-btn.active')?.click()">${t('common.retry')}</button>
-      </div>
-    `, "legacy direct innerHTML migration"));
+    const safeName = channel.name;
+    const retryBtn = document.createElement('button');
+    retryBtn.className = 'offline-retry';
+    retryBtn.textContent = t('common.retry') || 'Retry';
+    retryBtn.addEventListener('click', () => {
+      void this.retryActiveChannel();
+    });
+
+    const errorState = moduleState({
+      kind: 'unavailable',
+      title: t('components.liveNews.notLive', { name: safeName }),
+      action: retryBtn,
+    });
+    const container = document.createElement('div');
+    container.className = 'live-offline live-offline-compact';
+    container.appendChild(errorState);
+    this.setContentNodes(container);
   }
 
   private showEmbedError(channel: LiveChannel, errorCode: number): void {
@@ -1185,15 +1220,24 @@ export class LiveNewsPanel extends Panel {
       : channel.handle
       ? `https://www.youtube.com/${encodeURIComponent(channel.handle)}`
       : 'https://www.youtube.com';
-    const safeName = escapeHtml(channel.name);
+    const safeName = channel.name;
 
-    setTrustedHtml(this.content, trustedHtml(`
-      <div class="live-offline live-offline-compact">
-        <div class="offline-icon">!</div>
-        <div class="offline-text">${t('components.liveNews.cannotEmbed', { name: safeName, code: String(errorCode) })}</div>
-        <a class="offline-retry" href="${sanitizeUrl(watchUrl)}" target="_blank" rel="noopener noreferrer">${t('components.liveNews.openOnYouTube')}</a>
-      </div>
-    `, "legacy direct innerHTML migration"));
+    const redirectLink = document.createElement('a');
+    redirectLink.className = 'offline-retry';
+    redirectLink.href = sanitizeUrl(watchUrl);
+    redirectLink.target = '_blank';
+    redirectLink.rel = 'noopener noreferrer';
+    redirectLink.textContent = t('components.liveNews.openOnYouTube') || 'Open on YouTube';
+
+    const errorState = moduleState({
+      kind: 'error',
+      title: t('components.liveNews.cannotEmbed', { name: safeName, code: String(errorCode) }),
+      action: redirectLink,
+    });
+    const container = document.createElement('div');
+    container.className = 'live-offline live-offline-compact';
+    container.appendChild(errorState);
+    this.setContentNodes(container);
   }
 
   private renderPlayer(): void {
@@ -1638,18 +1682,6 @@ export class LiveNewsPanel extends Panel {
       : 'https://www.youtube.com';
 
     this.destroyPlayer();
-    setTrustedHtml(this.content, trustedHtml('', "legacy direct innerHTML migration"));
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'live-offline live-offline-compact';
-
-    const icon = document.createElement('div');
-    icon.className = 'offline-icon';
-    icon.textContent = '\u26A0\uFE0F';
-
-    const text = document.createElement('div');
-    text.className = 'offline-text';
-    text.textContent = t('components.liveNews.botCheck', { name: channel.name }) || 'YouTube is requesting sign-in verification';
 
     const actions = document.createElement('div');
     actions.className = 'bot-check-actions';
@@ -1679,8 +1711,15 @@ export class LiveNewsPanel extends Panel {
     ytLink.textContent = t('components.liveNews.openOnYouTube') || 'Open on YouTube';
 
     actions.append(signinBtn, retryBtn, ytLink);
-    wrapper.append(icon, text, actions);
-    this.content.appendChild(wrapper);
+    const degradedState = moduleState({
+      kind: 'degraded',
+      title: t('components.liveNews.botCheck', { name: channel.name }) || 'YouTube is requesting sign-in verification',
+      action: actions,
+    });
+    const wrapper = document.createElement('div');
+    wrapper.className = 'live-offline live-offline-compact';
+    wrapper.appendChild(degradedState);
+    this.setContentNodes(wrapper);
   }
 
   private async openYouTubeSignIn(): Promise<void> {

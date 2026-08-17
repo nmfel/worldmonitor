@@ -199,13 +199,13 @@ export class MacroSignalsPanel extends Panel {
 
     const html = `
       <div class="macro-signals-container">
-        <div class="macro-verdict ${verdictClass}">
+        <div class="macro-verdict module-status-row ${verdictClass}">
           <span class="verdict-label">${t('components.macroSignals.overall')}</span>
-          <span style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));background:rgba(247,147,26,0.15);color:#f7931a;border:1px solid rgba(247,147,26,0.3);padding:1px 5px;border-radius:3px;font-weight:700;letter-spacing:0.04em;vertical-align:middle">&#x20bf; BTC</span>
-          <span class="verdict-value">${d.verdict === 'BUY' ? t('components.macroSignals.verdict.buy') : d.verdict === 'CASH' ? t('components.macroSignals.verdict.cash') : escapeHtml(d.verdict)}</span>
-          <span class="verdict-detail">${t('components.macroSignals.bullish', { count: String(d.bullishCount), total: String(d.totalCount) })}</span>
+          <span class="module-badge" style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));background:rgba(247,147,26,0.15);color:#f7931a;border:1px solid rgba(247,147,26,0.3);padding:1px 5px;border-radius:3px;font-weight:700;letter-spacing:0.04em;vertical-align:middle">&#x20bf; BTC</span>
+          <span class="verdict-value module-status-value">${d.verdict === 'BUY' ? t('components.macroSignals.verdict.buy') : d.verdict === 'CASH' ? t('components.macroSignals.verdict.cash') : escapeHtml(d.verdict)}</span>
+          <span class="verdict-detail module-meta">${t('components.macroSignals.bullish', { count: String(d.bullishCount), total: String(d.totalCount) })}</span>
         </div>
-        <div class="signals-grid">
+        <div class="signals-grid module-metric-row">
           ${this.renderSignalCard(t('components.macroSignals.signals.liquidity'), s.liquidity.status, formatNum(s.liquidity.value), sparklineSvg(s.liquidity.sparkline, 60, 20, '#4fc3f7'), 'JPY 30d ROC', 'https://www.tradingview.com/symbols/JPYUSD/')}
           ${this.renderSignalCard(t('components.macroSignals.signals.flow'), s.flowStructure.status, `BTC ${formatNum(s.flowStructure.btcReturn5)} / QQQ ${formatNum(s.flowStructure.qqqReturn5)}`, '', '5d returns', null)}
           ${this.renderSignalCard(t('components.macroSignals.signals.regime'), s.macroRegime.status, `QQQ ${formatNum(s.macroRegime.qqqRoc20)} / XLP ${formatNum(s.macroRegime.xlpRoc20)}`, sparklineSvg(d.meta.qqqSparkline, 60, 20, '#ab47bc'), '20d ROC', 'https://www.tradingview.com/symbols/QQQ/')}
@@ -223,16 +223,16 @@ export class MacroSignalsPanel extends Panel {
   private renderSignalCard(name: string, status: string, value: string, sparkline: string, detail: string, link: string | null): string {
     const badgeClass = statusBadgeClass(status);
     return `
-      <div class="signal-card${link ? ' signal-card-linked' : ''}">
-        <div class="signal-header">
-          ${link ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="signal-name signal-card-link">${escapeHtml(name)}</a>` : `<span class="signal-name">${escapeHtml(name)}</span>`}
-          <span class="signal-badge ${badgeClass}">${escapeHtml(status)}</span>
+      <div class="signal-card module-metric${link ? ' signal-card-linked' : ''}">
+        <div class="signal-header module-section-header">
+          ${link ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="signal-name signal-card-link module-metric-label">${escapeHtml(name)}</a>` : `<span class="signal-name module-metric-label">${escapeHtml(name)}</span>`}
+          <span class="signal-badge module-badge ${badgeClass}">${escapeHtml(status)}</span>
         </div>
         <div class="signal-body">
           ${sparkline ? `<div class="signal-sparkline-wrap">${sparkline}</div>` : ''}
-          ${value ? `<span class="signal-value">${value}</span>` : ''}
+          ${value ? `<span class="signal-value module-metric-value">${value}</span>` : ''}
         </div>
-        ${detail ? `<div class="signal-detail">${escapeHtml(detail)}</div>` : ''}
+        ${detail ? `<div class="signal-detail module-metric-detail">${escapeHtml(detail)}</div>` : ''}
       </div>
     `;
   }
@@ -240,10 +240,10 @@ export class MacroSignalsPanel extends Panel {
   private renderFearGreedCard(fg: MacroSignalData['signals']['fearGreed']): string {
     const badgeClass = statusBadgeClass(fg.status);
     return `
-      <div class="signal-card signal-card-fg">
-        <div class="signal-header">
-          <span class="signal-name">${t('components.macroSignals.signals.fearGreed')}</span>
-          <span class="signal-badge ${badgeClass}">${escapeHtml(fg.status)}</span>
+      <div class="signal-card signal-card-fg module-metric">
+        <div class="signal-header module-section-header">
+          <span class="signal-name module-metric-label">${t('components.macroSignals.signals.fearGreed')}</span>
+          <span class="signal-badge module-badge ${badgeClass}">${escapeHtml(fg.status)}</span>
         </div>
         <div class="signal-body signal-body-fg">
           <div style="display:flex;align-items:center;gap:8px">
@@ -251,7 +251,7 @@ export class MacroSignalsPanel extends Panel {
             ${sparklineSvg(fg.history.map(h => h.value), 80, 28, fgSparklineColor(fg.status))}
           </div>
         </div>
-        <div class="signal-detail">
+        <div class="signal-detail module-metric-detail">
           <a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noopener">alternative.me</a>
         </div>
       </div>

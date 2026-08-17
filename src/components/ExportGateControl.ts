@@ -14,6 +14,7 @@
 
 import { t } from '@/services/i18n';
 import { PanelGateReason } from '@/services/panel-gating';
+import { isWorkspaceModeEnabled } from '@/services/workspace-activation';
 import { h, replaceChildren, setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 import { lockSvg, upgradeSvg } from '@/components/gate-icons';
 
@@ -47,12 +48,13 @@ export function billingAwareGateCopy(reason: PanelGateReason): GateCopy | null {
 
 /** Export-specific copy: shared billing-aware branches plus this surface's own sign-in/upgrade cases. */
 export function exportGateCopy(reason: PanelGateReason): GateCopy {
+  const isWorkspace = isWorkspaceModeEnabled();
   const billing = billingAwareGateCopy(reason);
   if (billing) return billing;
   if (reason === PanelGateReason.ANONYMOUS) {
-    return { icon: lockSvg, desc: t('components.exportGate.signedOutDesc'), cta: t('premium.signIn') };
+    return { icon: lockSvg, desc: isWorkspace ? 'Authentication required' : t('components.exportGate.signedOutDesc'), cta: isWorkspace ? 'Sign In' : t('premium.signIn') };
   }
-  return { icon: upgradeSvg, desc: t('components.exportGate.upgradeDesc'), cta: t('components.exportGate.upgradeCta') };
+  return { icon: upgradeSvg, desc: isWorkspace ? 'Subscription required for data export.' : t('components.exportGate.upgradeDesc'), cta: isWorkspace ? 'Subscription Required' : t('components.exportGate.upgradeCta') };
 }
 
 export interface ExportGateControlOptions {

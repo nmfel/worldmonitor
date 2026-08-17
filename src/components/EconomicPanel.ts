@@ -217,26 +217,26 @@ export class EconomicPanel extends Panel {
     const hasBls = this.blsData.length > 0;
 
     const tabsHtml = `
-      <div class="panel-tabs">
-        <button class="panel-tab ${this.activeTab === 'indicators' ? 'active' : ''}" data-tab="indicators">
+      <div class="panel-tabs module-tabs" role="tablist" aria-label="Macro data views">
+        <button class="panel-tab module-tab ${this.activeTab === 'indicators' ? 'active' : ''}" role="tab" aria-selected="${this.activeTab === 'indicators'}" data-tab="indicators">
           ${t('components.economic.indicators')}
         </button>
         ${hasSpending ? `
-          <button class="panel-tab ${this.activeTab === 'spending' ? 'active' : ''}" data-tab="spending">
+          <button class="panel-tab module-tab ${this.activeTab === 'spending' ? 'active' : ''}" role="tab" aria-selected="${this.activeTab === 'spending'}" data-tab="spending">
             Recent awards
           </button>
         ` : ''}
         ${hasBis ? `
-          <button class="panel-tab ${this.activeTab === 'centralBanks' ? 'active' : ''}" data-tab="centralBanks">
+          <button class="panel-tab module-tab ${this.activeTab === 'centralBanks' ? 'active' : ''}" role="tab" aria-selected="${this.activeTab === 'centralBanks'}" data-tab="centralBanks">
             ${t('components.economic.centralBanks')}
           </button>
         ` : ''}
         ${hasBls ? `
-          <button class="panel-tab ${this.activeTab === 'labor' ? 'active' : ''}" data-tab="labor">
+          <button class="panel-tab module-tab ${this.activeTab === 'labor' ? 'active' : ''}" role="tab" aria-selected="${this.activeTab === 'labor'}" data-tab="labor">
             ${t('components.economic.laborMarket')}
           </button>
         ` : ''}
-        <button class="panel-tab ${this.activeTab === 'stress' ? 'active' : ''}" data-tab="stress">
+        <button class="panel-tab module-tab ${this.activeTab === 'stress' ? 'active' : ''}" role="tab" aria-selected="${this.activeTab === 'stress'}" data-tab="stress">
           Stress Index
         </button>
       </div>
@@ -270,7 +270,7 @@ export class EconomicPanel extends Panel {
       <div class="economic-content">
         ${contentHtml}
       </div>
-      <div class="economic-footer">
+      <div class="economic-footer module-meta">
         <span class="economic-source">${this.getSourceLabel()} • ${updateTime}</span>
       </div>
     `, 'legacy Panel.setContent() migration'));
@@ -289,7 +289,7 @@ export class EconomicPanel extends Panel {
   private renderIndicators(): string {
     if (this.fredData.length === 0) {
       if (isDesktopRuntime() && !isFeatureAvailable('economicFred')) {
-        return `<div class="economic-empty">${t('components.economic.fredKeyMissing')}</div>`;
+        return `<div class="economic-empty module-state module-state-unavailable"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${t('components.economic.fredKeyMissing')}</strong></div></div>`;
       }
       if (this.fredState === 'error' || this.fredState === 'retrying') {
         const isRetrying = this.fredState === 'retrying';
@@ -297,17 +297,16 @@ export class EconomicPanel extends Panel {
         const mainMsg = raw.includes('\u2014') ? raw.slice(0, raw.indexOf('\u2014')).trimEnd() : raw;
         const countdownLine = isRetrying ? `<div class="panel-error-countdown">${escapeHtml(this.fredErrorMsg)}</div>` : '';
         return `
-          <div class="panel-error-state">
-            <div class="panel-loading-radar panel-error-radar">
-              <div class="panel-radar-sweep"></div>
-              <div class="panel-radar-dot error"></div>
+          <div class="panel-error-state module-state module-state-error">
+            <span class="module-state-indicator" aria-hidden="true"></span>
+            <div class="module-state-body">
+              <strong class="panel-error-msg module-state-title">${escapeHtml(mainMsg)}</strong>
+              ${countdownLine}
             </div>
-            <div class="panel-error-msg">${escapeHtml(mainMsg)}</div>
-            ${countdownLine}
           </div>
         `;
       }
-      return `<div class="economic-empty">${t('components.economic.noIndicatorData')}</div>`;
+      return `<div class="economic-empty module-state module-state-empty"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${t('components.economic.noIndicatorData')}</strong></div></div>`;
     }
 
     const pressure = getMacroPressure(this.fredData);
@@ -318,35 +317,37 @@ export class EconomicPanel extends Panel {
 
     return `
       <div class="economic-content-macro">
-        <div class="macro-pressure-card ${pressure.className}">
-          <div class="macro-pressure-label">${t('components.economic.pressure.label')}</div>
-          <div class="macro-pressure-value">${escapeHtml(pressure.label)}</div>
-          <div class="macro-pressure-detail">${escapeHtml(pressure.detail)}</div>
+        <div class="macro-pressure-card module-state ${pressure.className}">
+          <span class="module-state-indicator" aria-hidden="true"></span>
+          <div class="module-state-body">
+            <strong class="macro-pressure-value module-state-title">${escapeHtml(pressure.label)}</strong>
+            <span class="macro-pressure-detail module-state-message">${escapeHtml(pressure.detail)}</span>
+          </div>
         </div>
-        <div class="macro-summary-grid">
+        <div class="macro-summary-grid module-metric-row">
           ${summarySeries.map((series) => `
-            <div class="macro-summary-card">
+            <div class="macro-summary-card module-metric">
               <div class="macro-summary-head">
-                <span class="indicator-name">${escapeHtml(series.name)}</span>
-                <span class="indicator-id">${escapeHtml(series.id)}</span>
+                <span class="indicator-name module-status-label">${escapeHtml(series.name)}</span>
+                <span class="indicator-id module-meta-value">${escapeHtml(series.id)}</span>
               </div>
-              <div class="macro-summary-value">${escapeHtml(formatSeriesValue(series))}</div>
-              <div class="macro-summary-change ${getSeriesChangeClass(series.change)}">${escapeHtml(formatSeriesChange(series))}</div>
+              <div class="macro-summary-value module-metric-value">${escapeHtml(formatSeriesValue(series))}</div>
+              <div class="macro-summary-change module-delta ${getSeriesChangeClass(series.change)}">${escapeHtml(formatSeriesChange(series))}</div>
             </div>
           `).join('')}
         </div>
         <div class="economic-indicators">
           ${orderedSeries.map((series) => `
-            <div class="economic-indicator" data-series="${escapeHtml(series.id)}">
+            <div class="economic-indicator module-status-row" data-series="${escapeHtml(series.id)}">
               <div class="indicator-header">
-                <span class="indicator-name">${escapeHtml(series.name)}</span>
-                <span class="indicator-id">${escapeHtml(series.id)}</span>
+                <span class="indicator-name module-status-label">${escapeHtml(series.name)}</span>
+                <span class="indicator-id module-meta-value">${escapeHtml(series.id)}</span>
               </div>
               <div class="indicator-value">
-                <span class="value">${escapeHtml(formatSeriesValue(series))}</span>
-                <span class="change ${getSeriesChangeClass(series.change)}">${escapeHtml(formatSeriesChange(series))}</span>
+                <span class="value module-status-value">${escapeHtml(formatSeriesValue(series))}</span>
+                <span class="change module-delta ${getSeriesChangeClass(series.change)}">${escapeHtml(formatSeriesChange(series))}</span>
               </div>
-              <div class="indicator-date">${escapeHtml(series.date)}</div>
+              <div class="indicator-date module-meta">${escapeHtml(series.date)}</div>
               ${sparkline(series.observations?.map(o => o.value) ?? [], series.change !== null && series.change >= 0 ? '#4caf50' : '#f44336', 120, 28, 'display:block;margin:2px 0')}
             </div>
           `).join('')}
@@ -357,27 +358,27 @@ export class EconomicPanel extends Panel {
 
   private renderSpending(): string {
     if (!this.spendingData || !this.spendingData.awards?.length) {
-      return `<div class="economic-empty">${t('components.economic.noSpending')}</div>`;
+      return `<div class="economic-empty module-state module-state-empty"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${t('components.economic.noSpending')}</strong></div></div>`;
     }
 
     const { awards, totalAmount, periodStart, periodEnd } = this.spendingData;
 
     return `
-      <div class="spending-summary">
-        <div class="spending-total">
+      <div class="spending-summary module-meta">
+        <div class="spending-total module-status-row">
           ${escapeHtml(formatAwardAmount(totalAmount))} ${t('components.economic.in')} ${escapeHtml(String(awards.length))} ${t('components.economic.awards')}
-          <span class="spending-period">${escapeHtml(periodStart)} / ${escapeHtml(periodEnd)}</span>
+          <span class="spending-period module-meta-value">${escapeHtml(periodStart)} / ${escapeHtml(periodEnd)}</span>
         </div>
       </div>
       <div class="spending-list">
         ${awards.slice(0, 8).map(award => `
-          <div class="spending-award">
+          <div class="spending-award module-event-row">
             <div class="award-header">
               <span class="award-icon">${escapeHtml(getAwardTypeIcon(award.awardType))}</span>
-              <span class="award-amount">${escapeHtml(formatAwardAmount(award.amount))}</span>
+              <span class="award-amount module-status-value">${escapeHtml(formatAwardAmount(award.amount))}</span>
             </div>
-            <div class="award-recipient">${escapeHtml(award.recipientName)}</div>
-            <div class="award-agency">${escapeHtml(award.agency)}</div>
+            <div class="award-recipient module-status-label">${escapeHtml(award.recipientName)}</div>
+            <div class="award-agency module-meta">${escapeHtml(award.agency)}</div>
             ${award.description ? `<div class="award-desc">${escapeHtml(award.description.slice(0, 100))}${award.description.length > 100 ? '...' : ''}</div>` : ''}
           </div>
         `).join('')}
@@ -387,7 +388,7 @@ export class EconomicPanel extends Panel {
 
   private renderCentralBanks(): string {
     if (!this.bisData || !this.bisData.policyRates?.length) {
-      return `<div class="economic-empty">${t('components.economic.noBisData')}</div>`;
+      return `<div class="economic-empty module-state module-state-empty"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${t('components.economic.noBisData')}</strong></div></div>`;
     }
 
     const greenColor = getCSSColor('--semantic-normal');
@@ -396,8 +397,8 @@ export class EconomicPanel extends Panel {
 
     const sortedRates = [...this.bisData.policyRates].sort((a, b) => b.rate - a.rate);
     const policyHtml = `
-      <div class="bis-section">
-        <div class="bis-section-title">${t('components.economic.policyRate')}</div>
+      <div class="bis-section module-section">
+        <div class="bis-section-title module-section-title">${t('components.economic.policyRate')}</div>
         <div class="economic-indicators">
           ${sortedRates.map(r => {
       const diff = r.rate - r.previousRate;
@@ -405,16 +406,16 @@ export class EconomicPanel extends Panel {
       const label = diff < 0 ? t('components.economic.cut') : diff > 0 ? t('components.economic.hike') : t('components.economic.hold');
       const arrow = diff < 0 ? '▼' : diff > 0 ? '▲' : '–';
       return `
-              <div class="economic-indicator">
+              <div class="economic-indicator module-status-row">
                 <div class="indicator-header">
-                  <span class="indicator-name">${escapeHtml(r.centralBank)}</span>
-                  <span class="indicator-id">${escapeHtml(r.countryCode)}</span>
+                  <span class="indicator-name module-status-label">${escapeHtml(r.centralBank)}</span>
+                  <span class="indicator-id module-meta-value">${escapeHtml(r.countryCode)}</span>
                 </div>
                 <div class="indicator-value">
-                  <span class="value">${escapeHtml(String(r.rate))}%</span>
-                  <span class="change" style="color: ${escapeHtml(color)}">${escapeHtml(arrow)} ${escapeHtml(label)}</span>
+                  <span class="value module-status-value">${escapeHtml(String(r.rate))}%</span>
+                  <span class="change module-delta" style="color: ${escapeHtml(color)}">${escapeHtml(arrow)} ${escapeHtml(label)}</span>
                 </div>
-                <div class="indicator-date">${escapeHtml(r.date)}</div>
+                <div class="indicator-date module-meta">${escapeHtml(r.date)}</div>
               </div>`;
     }).join('')}
         </div>
@@ -424,23 +425,23 @@ export class EconomicPanel extends Panel {
     let eerHtml = '';
     if (this.bisData.exchangeRates?.length > 0) {
       eerHtml = `
-        <div class="bis-section">
-          <div class="bis-section-title">${t('components.economic.realEer')}</div>
+        <div class="bis-section module-section">
+          <div class="bis-section-title module-section-title">${t('components.economic.realEer')}</div>
           <div class="economic-indicators">
             ${this.bisData.exchangeRates.map(r => {
         const color = r.realChange > 0 ? redColor : r.realChange < 0 ? greenColor : neutralColor;
         const arrow = r.realChange > 0 ? '▲' : r.realChange < 0 ? '▼' : '–';
         return `
-                <div class="economic-indicator">
+                <div class="economic-indicator module-status-row">
                   <div class="indicator-header">
-                    <span class="indicator-name">${escapeHtml(r.countryName)}</span>
-                    <span class="indicator-id">${escapeHtml(r.countryCode)}</span>
+                    <span class="indicator-name module-status-label">${escapeHtml(r.countryName)}</span>
+                    <span class="indicator-id module-meta-value">${escapeHtml(r.countryCode)}</span>
                   </div>
                   <div class="indicator-value">
-                    <span class="value">${escapeHtml(String(r.realEer))}</span>
-                    <span class="change" style="color: ${escapeHtml(color)}">${escapeHtml(arrow)} ${escapeHtml(String(r.realChange > 0 ? '+' : ''))}${escapeHtml(String(r.realChange))}%</span>
+                    <span class="value module-status-value">${escapeHtml(String(r.realEer))}</span>
+                    <span class="change module-delta" style="color: ${escapeHtml(color)}">${escapeHtml(arrow)} ${escapeHtml(String(r.realChange > 0 ? '+' : ''))}${escapeHtml(String(r.realChange))}%</span>
                   </div>
-                  <div class="indicator-date">${escapeHtml(r.date)}</div>
+                  <div class="indicator-date module-meta">${escapeHtml(r.date)}</div>
                 </div>`;
       }).join('')}
           </div>
@@ -452,8 +453,8 @@ export class EconomicPanel extends Panel {
     if (this.bisData.creditToGdp?.length > 0) {
       const sortedCredit = [...this.bisData.creditToGdp].sort((a, b) => b.creditGdpRatio - a.creditGdpRatio);
       creditHtml = `
-        <div class="bis-section">
-          <div class="bis-section-title">${t('components.economic.creditToGdp')}</div>
+        <div class="bis-section module-section">
+          <div class="bis-section-title module-section-title">${t('components.economic.creditToGdp')}</div>
           <div class="economic-indicators">
             ${sortedCredit.map(r => {
         const diff = r.creditGdpRatio - r.previousRatio;
@@ -461,16 +462,16 @@ export class EconomicPanel extends Panel {
         const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '–';
         const changeStr = diff !== 0 ? `${diff > 0 ? '+' : ''}${(Math.round(diff * 10) / 10)}pp` : '–';
         return `
-                <div class="economic-indicator">
+                <div class="economic-indicator module-status-row">
                   <div class="indicator-header">
-                    <span class="indicator-name">${escapeHtml(r.countryName)}</span>
-                    <span class="indicator-id">${escapeHtml(r.countryCode)}</span>
+                    <span class="indicator-name module-status-label">${escapeHtml(r.countryName)}</span>
+                    <span class="indicator-id module-meta-value">${escapeHtml(r.countryCode)}</span>
                   </div>
                   <div class="indicator-value">
-                    <span class="value">${escapeHtml(String(r.creditGdpRatio))}%</span>
-                    <span class="change" style="color: ${escapeHtml(color)}">${escapeHtml(arrow)} ${escapeHtml(changeStr)}</span>
+                    <span class="value module-status-value">${escapeHtml(String(r.creditGdpRatio))}%</span>
+                    <span class="change module-delta" style="color: ${escapeHtml(color)}">${escapeHtml(arrow)} ${escapeHtml(changeStr)}</span>
                   </div>
-                  <div class="indicator-date">${escapeHtml(r.date)}</div>
+                  <div class="indicator-date module-meta">${escapeHtml(r.date)}</div>
                 </div>`;
       }).join('')}
           </div>
@@ -483,23 +484,23 @@ export class EconomicPanel extends Panel {
 
   private renderLabor(): string {
     if (this.blsData.length === 0) {
-      return `<div class="economic-empty">${t('components.economic.noIndicatorData')}</div>`;
+      return `<div class="economic-empty module-state module-state-empty"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${t('components.economic.noIndicatorData')}</strong></div></div>`;
     }
 
     const national = this.blsData.filter(s => !BLS_METRO_IDS.has(s.id));
     const metro = this.blsData.filter(s => BLS_METRO_IDS.has(s.id));
 
     const seriesRow = (series: FredSeries): string => `
-      <div class="economic-indicator" data-series="${escapeHtml(series.id)}">
+      <div class="economic-indicator module-status-row" data-series="${escapeHtml(series.id)}">
         <div class="indicator-header">
-          <span class="indicator-name">${escapeHtml(series.name)}</span>
-          <span class="indicator-id">${escapeHtml(series.id)}</span>
+          <span class="indicator-name module-status-label">${escapeHtml(series.name)}</span>
+          <span class="indicator-id module-meta-value">${escapeHtml(series.id)}</span>
         </div>
         <div class="indicator-value">
-          <span class="value">${escapeHtml(formatSeriesValue(series))}</span>
-          <span class="change ${getSeriesChangeClass(series.change)}">${escapeHtml(formatSeriesChange(series))}</span>
+          <span class="value module-status-value">${escapeHtml(formatSeriesValue(series))}</span>
+          <span class="change module-delta ${getSeriesChangeClass(series.change)}">${escapeHtml(formatSeriesChange(series))}</span>
         </div>
-        <div class="indicator-date">${escapeHtml(series.date)}</div>
+        <div class="indicator-date module-meta">${escapeHtml(series.date)}</div>
         ${sparkline(series.observations?.map(o => o.value) ?? [], series.change !== null && series.change >= 0 ? '#4caf50' : '#f44336', 120, 28, 'display:block;margin:2px 0')}
       </div>`;
 
@@ -509,8 +510,8 @@ export class EconomicPanel extends Panel {
           ${national.map(seriesRow).join('')}
         </div>
         ${metro.length > 0 ? `
-          <div class="bis-section">
-            <div class="bis-section-title">${t('components.economic.metroUnemployment')}</div>
+          <div class="bis-section module-section">
+            <div class="bis-section-title module-section-title">${t('components.economic.metroUnemployment')}</div>
             <div class="economic-indicators">
               ${metro.map(seriesRow).join('')}
             </div>
@@ -523,7 +524,7 @@ export class EconomicPanel extends Panel {
   private renderStress(): string {
     const d = this.stressData;
     if (!d || d.unavailable || !Number.isFinite(d.compositeScore)) {
-      return `<div class="economic-empty">Stress index data unavailable</div>`;
+      return '<div class="economic-empty module-state module-state-unavailable"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">Stress index data unavailable</strong></div></div>';
     }
 
     const color = stressScoreColor(d.compositeScore);

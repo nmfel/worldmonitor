@@ -195,6 +195,43 @@
   border-top: 1px solid var(--wm-border, var(--border));
 }
 
+.workspace-sidebar-about > summary {
+  list-style: none;
+}
+
+.workspace-sidebar-about > summary::-webkit-details-marker {
+  display: none;
+}
+
+.workspace-sidebar-about > summary::after {
+  float: right;
+  color: var(--text-muted);
+  content: '+';
+}
+
+.workspace-sidebar-about[open] > summary::after {
+  content: '−';
+}
+
+.workspace-sidebar-about-body {
+  display: grid;
+  gap: 4px;
+  padding: 6px 8px 8px;
+  color: var(--text-muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.workspace-sidebar-about-body a {
+  color: var(--text-dim);
+  text-decoration: none;
+}
+
+.workspace-sidebar-about-body a:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
 .workspace-sidebar.collapsed {
   width: 50px;
 }
@@ -493,8 +530,7 @@
     overflow: hidden;
   }
 
-  html.wm-workspace-sidebar .terminal-header,
-  html.wm-workspace-sidebar .site-footer {
+  html.wm-workspace-sidebar .terminal-header {
     flex: 0 0 auto;
   }
 

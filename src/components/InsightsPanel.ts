@@ -208,7 +208,7 @@ export class InsightsPanel extends Panel {
   private setProgress(step: number, total: number, message: string): void {
     const percent = Math.round((step / total) * 100);
     this.setSafeContent(unsafeRawHtml(`
-      <div class="insights-progress">
+      <div class="insights-progress module-state module-state-loading">
         <div class="insights-progress-bar">
           <div class="insights-progress-fill" style="width: ${percent}%"></div>
         </div>
@@ -245,14 +245,14 @@ export class InsightsPanel extends Panel {
 
     if (clusters.length === 0) {
       this.setDataBadge('unavailable');
-      this.setSafeContent(unsafeRawHtml(`<div class="insights-empty">${t('components.insights.waitingForData')}</div>`, 'legacy Panel.setContent() migration'));
+      this.setSafeContent(unsafeRawHtml(`<div class="insights-empty module-state module-state-empty"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${t('components.insights.waitingForData')}</strong></div></div>`, 'legacy Panel.setContent() migration'));
       return;
     }
 
     // Fallback: full client-side pipeline (skip on mobile — too heavy)
     if (isMobileDevice()) {
       this.setDataBadge('unavailable');
-      this.setSafeContent(unsafeRawHtml(`<div class="insights-empty">${t('components.insights.waitingForData')}</div>`, 'legacy Panel.setContent() migration'));
+      this.setSafeContent(unsafeRawHtml(`<div class="insights-empty module-state module-state-empty"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${t('components.insights.waitingForData')}</strong></div></div>`, 'legacy Panel.setContent() migration'));
       return;
     }
     await this.updateFromClient(clusters, thisGeneration);
@@ -407,7 +407,7 @@ export class InsightsPanel extends Panel {
       const importantClusters = importantItems.map(({ cluster }) => cluster);
 
       if (importantClusters.length === 0) {
-        this.setSafeContent(unsafeRawHtml(`<div class="insights-empty">${t('components.insights.noStories')}</div>`, 'legacy Panel.setContent() migration'));
+        this.setSafeContent(unsafeRawHtml(`<div class="insights-empty module-state module-state-empty"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${t('components.insights.noStories')}</strong></div></div>`, 'legacy Panel.setContent() migration'));
         return;
       }
 
@@ -518,8 +518,8 @@ export class InsightsPanel extends Panel {
       ${convergenceHtml}
       ${sentimentOverview}
       ${statsHtml}
-      <div class="insights-section">
-        <div class="insights-section-title">${t('components.insights.breakingConfirmed')}</div>
+      <div class="insights-section module-section">
+        <div class="insights-section-title module-section-title">${t('components.insights.breakingConfirmed')}</div>
         ${breakingHtml}
       </div>
       ${missedHtml}
@@ -564,8 +564,8 @@ export class InsightsPanel extends Panel {
       ${sentimentOverview}
       ${statsHtml}
       ${provenanceHtml}
-      <div class="insights-section">
-        <div class="insights-section-title">${t('components.insights.breakingConfirmed')}</div>
+      <div class="insights-section module-section">
+        <div class="insights-section-title module-section-title">${t('components.insights.breakingConfirmed')}</div>
         ${storiesHtml}
       </div>
       ${missedHtml}
@@ -589,26 +589,26 @@ export class InsightsPanel extends Panel {
       // closed on a pre-#6428 cached payload rather than fall back to it.
       const storyPublishers = story.uniqueSourceCount ?? 0;
       if (storyPublishers >= 3) {
-        badges.push(`<span class="insight-badge confirmed">✓ ${t('components.insights.sources', { count: storyPublishers })}</span>`);
+        badges.push(`<span class="insight-badge module-badge confirmed">✓ ${t('components.insights.sources', { count: storyPublishers })}</span>`);
       } else if (storyPublishers >= 2) {
-        badges.push(`<span class="insight-badge multi">${t('components.insights.sources', { count: storyPublishers })}</span>`);
+        badges.push(`<span class="insight-badge module-badge multi">${t('components.insights.sources', { count: storyPublishers })}</span>`);
       }
 
       if (story.isAlert) {
-        badges.push(`<span class="insight-badge alert">⚠ ${t('components.insights.alert')}</span>`);
+        badges.push(`<span class="insight-badge module-badge alert">⚠ ${t('components.insights.alert')}</span>`);
       }
 
       const VALID_THREAT_LEVELS = ['critical', 'high', 'elevated', 'moderate', 'medium', 'low', 'info'];
       if (story.threatLevel === 'critical' || story.threatLevel === 'high') {
         const safeThreat = VALID_THREAT_LEVELS.includes(story.threatLevel) ? story.threatLevel : 'moderate';
-        badges.push(`<span class="insight-badge velocity ${safeThreat}">${escapeHtml(story.category)}</span>`);
+        badges.push(`<span class="insight-badge module-badge velocity ${safeThreat}">${escapeHtml(story.category)}</span>`);
       }
 
       return `
-        <div class="insight-story">
-          <div class="insight-story-header">
+        <div class="insight-story module-event-row">
+          <div class="insight-story-header module-event-heading">
             <span class="insight-sentiment-dot ${sentimentClass}"></span>
-            <span class="insight-story-title">${escapeHtml(story.primaryTitle.slice(0, 100))}${story.primaryTitle.length > 100 ? '...' : ''}</span>
+            <span class="insight-story-title module-event-title">${escapeHtml(story.primaryTitle.slice(0, 100))}${story.primaryTitle.length > 100 ? '...' : ''}</span>
           </div>
           ${badges.length > 0 ? `<div class="insight-badges">${badges.join('')}</div>` : ''}
         </div>
@@ -621,7 +621,7 @@ export class InsightsPanel extends Panel {
     const prov = insights.provenance;
     if (!prov || !prov.storiesConsidered) return '';
     return `
-      <div class="insights-provenance" title="${t('components.insights.provenanceTitle')}">
+      <div class="insights-provenance module-meta" title="${t('components.insights.provenanceTitle')}">
         ${t('components.insights.compiledFrom', {
           stories: String(prov.storiesConsidered),
           sources: String(prov.sourcesConsidered),
@@ -632,18 +632,18 @@ export class InsightsPanel extends Panel {
 
   private renderServerStats(insights: ServerInsights): string {
     return `
-      <div class="insights-stats">
-        <div class="insight-stat">
-          <span class="insight-stat-value">${insights.multiSourceCount}</span>
-          <span class="insight-stat-label">${t('components.insights.multiSource')}</span>
+      <div class="insights-stats module-metric-row">
+        <div class="insight-stat module-metric">
+          <span class="insight-stat-value module-metric-value">${insights.multiSourceCount}</span>
+          <span class="insight-stat-label module-metric-label">${t('components.insights.multiSource')}</span>
         </div>
-        <div class="insight-stat">
-          <span class="insight-stat-value">${insights.fastMovingCount}</span>
-          <span class="insight-stat-label">${t('components.insights.fastMoving')}</span>
+        <div class="insight-stat module-metric">
+          <span class="insight-stat-value module-metric-value">${insights.fastMovingCount}</span>
+          <span class="insight-stat-label module-metric-label">${t('components.insights.fastMoving')}</span>
         </div>
-        <div class="insight-stat">
-          <span class="insight-stat-value">${insights.clusterCount}</span>
-          <span class="insight-stat-label">${t('components.insights.clusters')}</span>
+        <div class="insight-stat module-metric">
+          <span class="insight-stat-value module-metric-value">${insights.clusterCount}</span>
+          <span class="insight-stat-label module-metric-label">${t('components.insights.clusters')}</span>
         </div>
       </div>
     `;
@@ -673,7 +673,7 @@ export class InsightsPanel extends Panel {
     if (Number.isFinite(generatedMs) && Number.isFinite(newestMs)) {
       const agoMin = Math.max(0, Math.round((Date.now() - generatedMs) / 60000));
       const newestAgeH = Math.max(0, Math.round((Date.now() - (newestMs as number)) / 3600000 * 10) / 10);
-      footer = `<div class="insights-brief-freshness">${t('components.insights.briefFreshness', {
+      footer = `<div class="insights-brief-freshness module-meta">${t('components.insights.briefFreshness', {
         minutes: String(agoMin),
         hours: String(newestAgeH),
       })}</div>`;
@@ -689,7 +689,7 @@ export class InsightsPanel extends Panel {
     :                                `🌍 ${t('components.insights.briefWorld')}`;
     return `
       <div class="insights-brief">
-        <div class="insights-section-title">${heading}</div>
+        <div class="insights-section-title module-section-title">${heading}</div>
         <div class="insights-brief-text">${formatIntelBrief(brief, { sources })}</div>
         ${extrasHtml}
         ${renderBriefSourcesFooter(sources, { className: 'insights-brief-sources', maxSources: Math.max(6, sources.length) })}
@@ -714,31 +714,31 @@ export class InsightsPanel extends Panel {
 
       if (isq.tier === 'strong' || isq.tier === 'notable') {
         const cls = ISQ_BADGE_CLASS[isq.tier];
-        badges.push(`<span class="insight-badge ${cls}">${isq.tier.toUpperCase()}</span>`);
+        badges.push(`<span class="insight-badge module-badge ${cls}">${isq.tier.toUpperCase()}</span>`);
       }
 
       // #6428: publishers, not articles — see renderServerStories above.
       const clusterPublishers = cluster.uniquePublisherCount ?? 0;
       if (clusterPublishers >= 3) {
-        badges.push(`<span class="insight-badge confirmed">✓ ${t('components.insights.sources', { count: clusterPublishers })}</span>`);
+        badges.push(`<span class="insight-badge module-badge confirmed">✓ ${t('components.insights.sources', { count: clusterPublishers })}</span>`);
       } else if (clusterPublishers >= 2) {
-        badges.push(`<span class="insight-badge multi">${t('components.insights.sources', { count: clusterPublishers })}</span>`);
+        badges.push(`<span class="insight-badge module-badge multi">${t('components.insights.sources', { count: clusterPublishers })}</span>`);
       }
 
       if (cluster.velocity && cluster.velocity.level !== 'normal') {
         const velIcon = cluster.velocity.trend === 'rising' ? '↑' : '';
-        badges.push(`<span class="insight-badge velocity ${cluster.velocity.level}">${velIcon}+${cluster.velocity.sourcesPerHour}/hr</span>`);
+        badges.push(`<span class="insight-badge module-badge velocity ${cluster.velocity.level}">${velIcon}+${cluster.velocity.sourcesPerHour}/hr</span>`);
       }
 
       if (cluster.isAlert) {
-        badges.push(`<span class="insight-badge alert">⚠ ${t('components.insights.alert')}</span>`);
+        badges.push(`<span class="insight-badge module-badge alert">⚠ ${t('components.insights.alert')}</span>`);
       }
 
       return `
-        <div class="insight-story">
-          <div class="insight-story-header">
+        <div class="insight-story module-event-row">
+          <div class="insight-story-header module-event-heading">
             <span class="insight-sentiment-dot ${sentimentClass}"></span>
-            <span class="insight-story-title">${escapeHtml(cluster.primaryTitle.slice(0, 100))}${cluster.primaryTitle.length > 100 ? '...' : ''}</span>
+            <span class="insight-story-title module-event-title">${escapeHtml(cluster.primaryTitle.slice(0, 100))}${cluster.primaryTitle.length > 100 ? '...' : ''}</span>
           </div>
           ${badges.length > 0 ? `<div class="insight-badges">${badges.join('')}</div>` : ''}
         </div>
@@ -796,19 +796,19 @@ export class InsightsPanel extends Panel {
     const alerts = clusters.filter(c => c.isAlert).length;
 
     return `
-      <div class="insights-stats">
-        <div class="insight-stat">
-          <span class="insight-stat-value">${multiSource}</span>
-          <span class="insight-stat-label">${t('components.insights.multiSource')}</span>
+      <div class="insights-stats module-metric-row">
+        <div class="insight-stat module-metric">
+          <span class="insight-stat-value module-metric-value">${multiSource}</span>
+          <span class="insight-stat-label module-metric-label">${t('components.insights.multiSource')}</span>
         </div>
-        <div class="insight-stat">
-          <span class="insight-stat-value">${fastMoving}</span>
-          <span class="insight-stat-label">${t('components.insights.fastMoving')}</span>
+        <div class="insight-stat module-metric">
+          <span class="insight-stat-value module-metric-value">${fastMoving}</span>
+          <span class="insight-stat-label module-metric-label">${t('components.insights.fastMoving')}</span>
         </div>
         ${alerts > 0 ? `
-        <div class="insight-stat alert">
-          <span class="insight-stat-value">${alerts}</span>
-          <span class="insight-stat-label">${t('components.insights.alertsLabel')}</span>
+        <div class="insight-stat module-metric alert">
+          <span class="insight-stat-value module-metric-value">${alerts}</span>
+          <span class="insight-stat-label module-metric-label">${t('components.insights.alertsLabel')}</span>
         </div>
         ` : ''}
       </div>
@@ -833,13 +833,13 @@ export class InsightsPanel extends Panel {
       const perspectiveScore = topPerspective?.score ?? 0;
 
       return `
-        <div class="insight-story missed">
-          <div class="insight-story-header">
+        <div class="insight-story module-event-row missed">
+          <div class="insight-story-header module-event-heading">
             <span class="insight-sentiment-dot ml-flagged"></span>
-            <span class="insight-story-title">${escapeHtml(story.title.slice(0, 80))}${story.title.length > 80 ? '...' : ''}</span>
+            <span class="insight-story-title module-event-title">${escapeHtml(story.title.slice(0, 80))}${story.title.length > 80 ? '...' : ''}</span>
           </div>
           <div class="insight-badges">
-            <span class="insight-badge ml-detected">🔬 ${perspectiveName}: ${(perspectiveScore * 100).toFixed(0)}%</span>
+            <span class="insight-badge module-badge ml-detected">🔬 ${perspectiveName}: ${(perspectiveScore * 100).toFixed(0)}%</span>
           </div>
         </div>
       `;
@@ -847,7 +847,7 @@ export class InsightsPanel extends Panel {
 
     return `
       <div class="insights-section insights-missed">
-        <div class="insights-section-title">🎯 ${t('components.insights.mlDetected')}</div>
+        <div class="insights-section-title module-section-title">🎯 ${t('components.insights.mlDetected')}</div>
         ${storiesHtml}
       </div>
     `;
@@ -880,7 +880,7 @@ export class InsightsPanel extends Panel {
 
     return `
       <div class="insights-section insights-convergence">
-        <div class="insights-section-title">📍 ${t('components.insights.geographicConvergence')}</div>
+        <div class="insights-section-title module-section-title">📍 ${t('components.insights.geographicConvergence')}</div>
         ${zonesHtml}
       </div>
     `;
@@ -930,7 +930,7 @@ export class InsightsPanel extends Panel {
 
     return `
       <div class="insights-section insights-focal">
-        <div class="insights-section-title">🎯 ${t('components.insights.focalPoints')}</div>
+        <div class="insights-section-title module-section-title">🎯 ${t('components.insights.focalPoints')}</div>
         ${focalPointsHtml}
       </div>
     `;
@@ -938,10 +938,12 @@ export class InsightsPanel extends Panel {
 
   private renderDisabledState(): void {
     this.setSafeContent(unsafeRawHtml(`
-      <div class="insights-disabled">
-        <div class="insights-disabled-icon">⚡</div>
-        <div class="insights-disabled-title">${t('components.insights.insightsDisabledTitle')}</div>
-        <div class="insights-disabled-hint">${t('components.insights.insightsDisabledHint')}</div>
+      <div class="insights-disabled module-state module-state-unavailable">
+        <span class="module-state-indicator" aria-hidden="true"></span>
+        <div class="module-state-body">
+          <strong class="module-state-title">${t('components.insights.insightsDisabledTitle')}</strong>
+          <span class="module-state-message">${t('components.insights.insightsDisabledHint')}</span>
+        </div>
       </div>
     `, 'legacy Panel.setContent() migration'));
   }

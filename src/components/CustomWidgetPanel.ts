@@ -1,6 +1,7 @@
 import { Panel } from './Panel';
 import type { CustomWidgetSpec } from '@/services/widget-store';
 import { t } from '@/services/i18n';
+import { isWorkspaceModeEnabled } from '@/services/workspace-activation';
 import { wrapWidgetHtml, wrapProWidgetHtml } from '@/utils/widget-sanitizer';
 import { h } from '@/utils/dom-utils';
 import { unsafeRawHtml } from '@/utils/sanitize';
@@ -37,7 +38,7 @@ export class CustomWidgetPanel extends Panel {
       }));
     });
 
-    if (this.spec.tier === 'pro') {
+    if (this.spec.tier === 'pro' && !isWorkspaceModeEnabled()) {
       const badge = h('span', { className: 'widget-pro-badge' }, t('widgets.proBadge'));
       if (closeBtn) {
         this.header.insertBefore(badge, closeBtn);

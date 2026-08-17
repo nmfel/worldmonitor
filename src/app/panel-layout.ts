@@ -900,6 +900,7 @@ export class PanelLayoutManager implements AppModule {
   }
 
   async renderLayout(): Promise<void> {
+    const workspaceModeEnabled = isWorkspaceModeEnabled();
     const isGlobeMode = getStoredMapModePreference() === 'globe';
     // #5159: the collapsed-map cohort's #mapSection must be CREATED with
     // .collapsed — main.css sets the expanded mobile height with !important
@@ -1154,6 +1155,7 @@ export class PanelLayoutManager implements AppModule {
           <span class="mobile-tab-icon" aria-hidden="true">•••</span><span>More</span>
         </button>
       </nav>
+      ${workspaceModeEnabled ? '' : `
       <footer class="site-footer">
         <div class="site-footer-brand">
           <img src="/favico/android-chrome-96x96.png" alt="" width="28" height="28" loading="lazy" decoding="async" class="site-footer-icon" />
@@ -1173,6 +1175,7 @@ export class PanelLayoutManager implements AppModule {
 
         <span class="site-footer-copy">&copy; ${new Date().getFullYear()} World Monitor</span>
       </footer>
+      `}
     `, "legacy direct innerHTML migration"));
     // Mark AFTER the innerHTML swap so the timestamp reflects when the new shell
     // DOM is actually live — placing it before setTrustedHtml recorded a time
@@ -1246,6 +1249,7 @@ export class PanelLayoutManager implements AppModule {
       this.workspaceSidebar = new WorkspaceSidebar({
         store,
         variant: SITE_VARIANT,
+        version: __APP_VERSION__,
         activate: (workspace) => this.activateWorkspace(workspace),
         openSettings: () => this.ctx.unifiedSettings?.open('panels'),
       });

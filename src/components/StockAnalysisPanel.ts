@@ -1,5 +1,6 @@
 import { Panel } from './Panel';
 import { t } from '@/services/i18n';
+import { isWorkspaceModeEnabled } from '@/services/workspace-activation';
 import type { StockAnalysisResult } from '@/services/stock-analysis';
 import { isAnalyzableSymbol } from '@/services/stock-analysis';
 import {
@@ -80,7 +81,8 @@ export class StockAnalysisPanel extends Panel {
   private lastHistory: StockAnalysisHistory = {};
 
   constructor() {
-    super({ id: 'stock-analysis', title: 'Premium Stock Analysis', infoTooltip: t('components.stockAnalysis.infoTooltip'), premium: 'locked' });
+    const isWorkspace = isWorkspaceModeEnabled();
+    super({ id: 'stock-analysis', title: isWorkspace ? 'Stock Analysis' : 'Premium Stock Analysis', infoTooltip: t('components.stockAnalysis.infoTooltip'), premium: 'locked' });
     this.header.appendChild(createWatchlistButton('Edit Watchlist'));
   }
 

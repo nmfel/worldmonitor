@@ -15,6 +15,7 @@ import {
   partitionByFollowed,
   shouldRenderSectionLabels,
 } from './_cii-panel-partition';
+import { moduleState, moduleMeta } from './panel-content-primitives';
 
 export const CII_METHODOLOGY_HREF = '/docs/methodology/cii-risk-scores';
 
@@ -91,9 +92,9 @@ export class CIIPanel extends Panel {
   );
 
   private buildTrendArrow(trend: CountryScore['trend'], change: number): HTMLElement {
-    if (trend === 'rising') return h('span', { className: 'trend-up' }, `↑${change > 0 ? change : ''}`);
-    if (trend === 'falling') return h('span', { className: 'trend-down' }, `↓${Math.abs(change)}`);
-    return h('span', { className: 'trend-stable' }, '→');
+    if (trend === 'rising') return h('span', { className: 'module-delta trend-up' }, `↑${change > 0 ? change : ''}`);
+    if (trend === 'falling') return h('span', { className: 'module-delta trend-down' }, `↓${Math.abs(change)}`);
+    return h('span', { className: 'module-delta trend-stable' }, '→');
   }
 
   private buildCountry(country: CountryScore): HTMLElement {
@@ -133,7 +134,7 @@ export class CIIPanel extends Panel {
     // stopPropagation pattern in `bindShareButtons`).
     followHost.addEventListener('click', (e) => e.stopPropagation());
 
-    return h('div', { className: 'cii-country', dataset: { code: country.code } },
+    return h('div', { className: 'cii-country module-event-row', dataset: { code: country.code } },
       followHost,
       h('div', { className: 'cii-header' },
         h('span', { className: 'cii-emoji' }, emoji),
@@ -146,10 +147,10 @@ export class CIIPanel extends Panel {
         h('div', { className: 'cii-bar', style: `width: ${country.score}%; background: ${color};` }),
       ),
       h('div', { className: 'cii-components' },
-        h('span', { title: t('common.unrest') }, `U:${country.components.unrest}`),
-        h('span', { title: t('common.conflict') }, `C:${country.components.conflict}`),
-        h('span', { title: t('common.security') }, `S:${country.components.security}`),
-        h('span', { title: t('common.information') }, `I:${country.components.information}`),
+        h('span', { className: 'module-badge', title: t('common.unrest') }, `U:${country.components.unrest}`),
+        h('span', { className: 'module-badge', title: t('common.conflict') }, `C:${country.components.conflict}`),
+        h('span', { className: 'module-badge', title: t('common.security') }, `S:${country.components.security}`),
+        h('span', { className: 'module-badge', title: t('common.information') }, `I:${country.components.information}`),
       ),
     );
   }
@@ -222,12 +223,14 @@ export class CIIPanel extends Panel {
   }
 
   private buildMethodologyFooter(): HTMLElement {
+    const methodologyLink = h('a', {
+      href: CII_METHODOLOGY_HREF,
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    }, t('components.cii.methodologyLink'));
+
     return h('div', { className: 'cii-methodology-footer' },
-      h('a', {
-        href: CII_METHODOLOGY_HREF,
-        target: '_blank',
-        rel: 'noopener noreferrer',
-      }, t('components.cii.methodologyLink')),
+      moduleMeta([], [methodologyLink]),
     );
   }
 
@@ -300,7 +303,10 @@ export class CIIPanel extends Panel {
     this.setDataBadge('unavailable');
     this.tearDownFollowButtons();
     this.setContentNodes(
-      h('div', { className: 'empty-state' }, t('common.failedCII')),
+      moduleState({
+        kind: 'unavailable',
+        title: t('common.failedCII'),
+      }),
       this.buildMethodologyFooter(),
     );
   }

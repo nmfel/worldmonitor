@@ -68,7 +68,7 @@ test.describe('panel font scaling', () => {
     await bootDashboard(page);
 
     const panelTitle = '#panelsGrid > .panel:not(.hidden) .panel-title';
-    const panelBodyText = '.panel[data-panel="live-news"] .live-media-shell-title';
+    const panelBodyText = '.panel[data-panel="live-news"] .live-media-shell .module-state-title';
     const mapTitle = '#mapSection > .panel-header .panel-title';
     await expect(page.locator(panelBodyText)).toBeVisible();
     const basePanelSize = await fontSize(page, panelTitle);

@@ -1,5 +1,6 @@
 import { Panel } from './Panel';
 import { t } from '@/services/i18n';
+import { isWorkspaceModeEnabled } from '@/services/workspace-activation';
 import type { StockBacktestResult } from '@/services/stock-backtest';
 import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
 import { createWatchlistButton } from './watchlist-modal';
@@ -32,7 +33,8 @@ export class StockBacktestPanel extends Panel {
   private tableView?: WatchlistTableView<StockBacktestResult>;
 
   constructor() {
-    super({ id: 'stock-backtest', title: 'Premium Backtesting', infoTooltip: t('components.stockBacktest.infoTooltip'), premium: 'locked' });
+    const isWorkspace = isWorkspaceModeEnabled();
+    super({ id: 'stock-backtest', title: isWorkspace ? 'Backtesting' : 'Premium Backtesting', infoTooltip: t('components.stockBacktest.infoTooltip'), premium: 'locked' });
     this.header.appendChild(createWatchlistButton('Edit Watchlist'));
   }
 

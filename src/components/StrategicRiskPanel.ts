@@ -286,28 +286,22 @@ export class StrategicRiskPanel extends Panel {
     const score = this.overview.compositeScore;
     const color = this.getScoreColor(score);
     const level = this.getScoreLevel(score);
-    const scoreDeg = Math.round((score / 100) * 270);
-
     const cacheStateBanner = this.renderCachedRiskStateBanner();
 
     return `
       <div class="strategic-risk-panel">
         ${cacheStateBanner}
 
-        <div class="risk-gauge">
-          <div class="risk-score-container">
-            <div class="risk-score-ring" style="--score-color: ${color}; --score-deg: ${scoreDeg}deg;">
-              <div class="risk-score-inner">
-                <div class="risk-score" style="color: ${color}">${score}</div>
-                <div class="risk-level" style="color: ${color}">${level}</div>
-              </div>
-            </div>
+        <div class="risk-overview module-status-row">
+          <div class="risk-score-block">
+            <span class="risk-score" style="color: ${color}">${score}</span>
+            <span class="risk-level" style="color: ${color}">${level}</span>
           </div>
           <div class="risk-trend-container">
             <span class="risk-trend-label">${t('components.strategicRisk.trend')}</span>
-            <div class="risk-trend" style="color: ${this.getTrendColor(this.overview.trend)}">
+            <span class="risk-trend module-delta" style="color: ${this.getTrendColor(this.overview.trend)}">
               ${this.getTrendEmoji(this.overview.trend)} ${this.overview.trend === 'escalating' ? t('components.strategicRisk.trends.escalating') : this.overview.trend === 'de-escalating' ? t('components.strategicRisk.trends.deEscalating') : t('components.strategicRisk.trends.stable')}
-            </div>
+            </span>
           </div>
         </div>
 
@@ -316,7 +310,7 @@ export class StrategicRiskPanel extends Panel {
         ${this.renderTopRisks()}
         ${this.renderRecentAlerts()}
 
-        <div class="risk-footer">
+        <div class="risk-footer module-meta">
           <span class="risk-updated">${t('components.strategicRisk.updated', { time: this.formatOverviewTimestamp() })}</span>
           <button class="risk-refresh-btn">${t('components.strategicRisk.refresh')}</button>
         </div>
@@ -330,9 +324,11 @@ export class StrategicRiskPanel extends Panel {
       this.overview.degraded ? t('components.strategicRisk.sourceStates.degraded') : '',
       this.overview.stale ? t('components.strategicRisk.sourceStates.stale') : '',
     ].filter(Boolean);
-    return `<div class="risk-status-banner risk-status-cached">
-      <span class="risk-status-icon">!</span>
-      <span class="risk-status-text">${t('components.strategicRisk.cachedCiiStatus', { states: labels.join(' · ') })}</span>
+    return `<div class="risk-status-banner risk-status-cached module-state module-state-stale">
+      <span class="module-state-indicator" aria-hidden="true"></span>
+      <div class="module-state-body">
+        <strong class="module-state-title">${t('components.strategicRisk.cachedCiiStatus', { states: labels.join(' · ') })}</strong>
+      </div>
     </div>`;
   }
 
@@ -348,11 +344,11 @@ export class StrategicRiskPanel extends Panel {
 
     if (sources.length === 0) return '';
     return `
-      <div class="risk-section">
-        <div class="risk-section-title">${t('components.strategicRisk.dataFreshness')}</div>
-        <div class="risk-sources-compact">
+      <div class="risk-section module-section">
+        <div class="risk-section-title module-section-title">${t('components.strategicRisk.dataFreshness')}</div>
+        <div class="risk-sources-compact module-meta">
           ${sources.map(source => `
-            <span class="risk-source-chip" title="${escapeHtml(source.healthStatus || source.status)}" style="border-color: ${getStatusColor(source.status)}">
+            <span class="risk-source-chip module-badge" title="${escapeHtml(source.healthStatus || source.status)}" style="border-color: ${getStatusColor(source.status)}">
               <span class="risk-source-dot" style="color: ${getStatusColor(source.status)}">${getStatusIcon(source.status)}</span>
               <span class="risk-source-name">${escapeHtml(source.name)}</span>
               <span class="risk-source-time">${escapeHtml(dataFreshness.getTimeSince(source.id))}</span>
@@ -363,28 +359,28 @@ export class StrategicRiskPanel extends Panel {
     `;
   }
 
-  private renderMetrics(): string {
+    private renderMetrics(): string {
     if (!this.overview) return '';
 
     const alertCounts = getAlertCount();
 
     return `
-      <div class="risk-metrics">
-        <div class="risk-metric">
-          <span class="risk-metric-value">${this.overview.convergenceAlerts}</span>
-          <span class="risk-metric-label">${t('components.strategicRisk.convergenceMetric')}</span>
+      <div class="risk-metrics module-metric-row">
+        <div class="risk-metric module-metric">
+          <span class="risk-metric-value module-metric-value">${this.overview.convergenceAlerts}</span>
+          <span class="risk-metric-label module-metric-label">${t('components.strategicRisk.convergenceMetric')}</span>
         </div>
-        <div class="risk-metric">
-          <span class="risk-metric-value">${this.overview.avgCIIDeviation.toFixed(1)}</span>
-          <span class="risk-metric-label">${t('components.strategicRisk.ciiDeviation')}</span>
+        <div class="risk-metric module-metric">
+          <span class="risk-metric-value module-metric-value">${this.overview.avgCIIDeviation.toFixed(1)}</span>
+          <span class="risk-metric-label module-metric-label">${t('components.strategicRisk.ciiDeviation')}</span>
         </div>
-        <div class="risk-metric">
-          <span class="risk-metric-value">${this.overview.infrastructureIncidents}</span>
-          <span class="risk-metric-label">${t('components.strategicRisk.infraEvents')}</span>
+        <div class="risk-metric module-metric">
+          <span class="risk-metric-value module-metric-value">${this.overview.infrastructureIncidents}</span>
+          <span class="risk-metric-label module-metric-label">${t('components.strategicRisk.infraEvents')}</span>
         </div>
-        <div class="risk-metric">
-          <span class="risk-metric-value">${alertCounts.critical + alertCounts.high}</span>
-          <span class="risk-metric-label">${t('components.strategicRisk.highAlerts')}</span>
+        <div class="risk-metric module-metric">
+          <span class="risk-metric-value module-metric-value">${alertCounts.critical + alertCounts.high}</span>
+          <span class="risk-metric-label module-metric-label">${t('components.strategicRisk.highAlerts')}</span>
         </div>
       </div>
     `;
@@ -392,32 +388,34 @@ export class StrategicRiskPanel extends Panel {
 
   private renderTopRisks(): string {
     if (!this.overview || this.overview.topRisks.length === 0) {
-      return `<div class="risk-empty">${t('components.strategicRisk.noRisks')}</div>`;
+      return `<div class="risk-empty module-state module-state-empty"><span class="module-state-indicator" aria-hidden="true"></span><div class="module-state-body"><strong class="module-state-title">${t('components.strategicRisk.noRisks')}</strong></div></div>`;
     }
 
     // Get convergence zone for first risk if available
     const topZone = this.overview.topConvergenceZones[0];
 
     return `
-      <div class="risk-section">
-        <div class="risk-section-title">${t('components.strategicRisk.topRisks')}</div>
+      <div class="risk-section module-section">
+        <div class="risk-section-title module-section-title">${t('components.strategicRisk.topRisks')}</div>
         <div class="risk-list">
           ${this.overview.topRisks.map((risk, i) => {
       // First risk is convergence - make it clickable if we have location
       const isConvergence = i === 0 && risk.startsWith('Convergence:') && topZone;
+      const separator = risk.indexOf(': ');
+      const name = separator >= 0 ? risk.slice(0, separator) : risk;
+      const val = separator >= 0 ? risk.slice(separator + 2) : '';
       if (isConvergence) {
         return `
-                <div class="risk-item risk-item-clickable" data-lat="${topZone.lat}" data-lon="${topZone.lon}">
-                  <span class="risk-rank">${i + 1}.</span>
-                  <span class="risk-text">${escapeHtml(risk)}</span>
-                  <span class="risk-location-icon">↗</span>
+                <div class="risk-item risk-item-clickable module-status-row" data-lat="${topZone.lat}" data-lon="${topZone.lon}">
+                  <span class="risk-rank module-status-label">${i + 1}. ${escapeHtml(name)}</span>
+                  <span class="risk-text module-status-value">${escapeHtml(val)} <span class="risk-location-icon">↗</span></span>
                 </div>
               `;
       }
       return `
-              <div class="risk-item">
-                <span class="risk-rank">${i + 1}.</span>
-                <span class="risk-text">${escapeHtml(risk)}</span>
+              <div class="risk-item module-status-row">
+                <span class="risk-rank module-status-label">${i + 1}. ${escapeHtml(name)}</span>
+                <span class="risk-text module-status-value">${escapeHtml(val)}</span>
               </div>
             `;
     }).join('')}
@@ -434,8 +432,8 @@ export class StrategicRiskPanel extends Panel {
     const displayAlerts = this.alerts.slice(0, 5);
 
     return `
-      <div class="risk-section">
-        <div class="risk-section-title">${t('components.strategicRisk.recentAlerts', { count: String(this.alerts.length) })}</div>
+      <div class="risk-section module-section">
+        <div class="risk-section-title module-section-title">${t('components.strategicRisk.recentAlerts', { count: String(this.alerts.length) })}</div>
         <div class="risk-alerts">
           ${displayAlerts.map(alert => {
       const hasLocation = alert.location?.lat && alert.location.lon;
@@ -443,17 +441,18 @@ export class StrategicRiskPanel extends Panel {
       const locationAttrs = hasLocation
         ? `data-lat="${alert.location!.lat}" data-lon="${alert.location!.lon}"`
         : '';
+      const severityClass = alert.priority === 'critical' ? 'critical' : alert.priority === 'high' ? 'danger' : alert.priority === 'medium' ? 'warning' : 'info';
 
       return `
-              <div class="risk-alert ${clickableClass}" style="border-left: 3px solid ${this.getPriorityColor(alert.priority)}" ${locationAttrs}>
-                <div class="risk-alert-header">
+              <div class="risk-alert module-event-row ${clickableClass}" style="border-left: 3px solid ${this.getPriorityColor(alert.priority)}" ${locationAttrs}>
+                <div class="risk-alert-header module-event-heading">
                   <span class="risk-alert-type">${this.getTypeEmoji(alert.type)}</span>
-                  <span class="risk-alert-priority">${this.getPriorityEmoji(alert.priority)}</span>
-                  <span class="risk-alert-title">${escapeHtml(alert.title)}</span>
+                  <span class="risk-alert-priority module-severity module-tone-${severityClass}"><span class="module-severity-indicator" aria-hidden="true"></span>${this.getPriorityEmoji(alert.priority)}</span>
+                  <span class="risk-alert-title module-event-title">${escapeHtml(alert.title)}</span>
                   ${hasLocation ? '<span class="risk-location-icon">↗</span>' : ''}
                 </div>
-                <div class="risk-alert-summary">${escapeHtml(alert.summary)}</div>
-                <div class="risk-alert-time">${this.formatTime(alert.timestamp)}</div>
+                <div class="risk-alert-summary module-event-summary">${escapeHtml(alert.summary)}</div>
+                <div class="risk-alert-time module-meta">${this.formatTime(alert.timestamp)}</div>
               </div>
             `;
     }).join('')}

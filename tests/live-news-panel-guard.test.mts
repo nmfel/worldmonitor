@@ -139,6 +139,47 @@ describe('LiveNewsPanel instantiation guard', () => {
   });
 });
 
+describe('LiveNewsPanel Phase 1D-1 presentation contract', () => {
+  it('uses shared module primitives for toolbar, metadata, event, and state surfaces', () => {
+    const liveNews = src('src/components/LiveNewsPanel.ts');
+    for (const primitive of ['moduleToolbar', 'moduleMeta', 'moduleEventRow', 'moduleState']) {
+      assert.ok(liveNews.includes(primitive), `LiveNewsPanel must use ${primitive}`);
+    }
+  });
+
+  it('preserves playback, source switching, and channel management entry points', () => {
+    const liveNews = src('src/components/LiveNewsPanel.ts');
+    for (const contract of ['playAllLiveMedia()', 'switchChannel(channel)', 'openChannelManagementModal()', 'requestLiveMediaPlayback(']) {
+      assert.ok(liveNews.includes(contract), `LiveNewsPanel must preserve ${contract}`);
+    }
+  });
+
+  it('retries the active source through the playback path instead of same-channel switching', () => {
+    const liveNews = src('src/components/LiveNewsPanel.ts');
+    const retryStart = liveNews.indexOf('private async retryActiveChannel()');
+    const retryEnd = liveNews.indexOf('private showOfflineMessage', retryStart);
+    const retryBlock = liveNews.slice(retryStart, retryEnd);
+    assert.ok(retryStart >= 0 && retryEnd > retryStart);
+    assert.ok(retryBlock.includes('resolveChannelVideo(channel)'));
+    assert.ok(retryBlock.includes('requestPlaybackForActiveChannel()'));
+    assert.ok(!retryBlock.includes('switchChannel('));
+  });
+
+  it('renders unavailable, error, and degraded states with shared state semantics', () => {
+    const liveNews = src('src/components/LiveNewsPanel.ts');
+    assert.match(liveNews, /kind:\s*'unavailable'/);
+    assert.match(liveNews, /kind:\s*'error'/);
+    assert.match(liveNews, /kind:\s*'degraded'/);
+  });
+
+  it('keeps inactive feed presentation flat and free of decorative gradients', () => {
+    const styles = src('src/styles/main.css');
+    const shellBlock = styles.match(/\.live-media-shell\s*\{([^}]+)\}/s)?.[1] ?? '';
+    assert.ok(shellBlock.includes('background: var(--bg);'));
+    assert.ok(!shellBlock.includes('gradient'));
+  });
+});
+
 // ---------------------------------------------------------------------------
 // 5. 'live-news' must NOT be shadowed by a generic RSS NewsPanel
 //    Regression: #4382 (perf: split panel chunks by domain) flipped the
